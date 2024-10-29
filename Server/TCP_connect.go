@@ -46,6 +46,16 @@ func IDcheck(ID string) bool {
 	return false
 }
 
+/********************* Command ********************\
+ * 			ROOM MAKE 		(Create a room)       *
+ *			ROOM JOIN XX 	(XX is room ID)       *
+ * 			ROOM FIND 		(Auto find a room)    *
+ * 			ROOM LEAVE 		(Leave the room)      *
+ * 			REG XX 			(Register ID XX:ID)   *
+ * 			LOGIN XX 		(Login ID XX:ID)      *
+ * 			LOGOUT 			(Logout)              *
+\**************************************************/
+
 func Cli_handle(conn net.Conn, player player_in) {
 	// 3. 讀取資料
 	defer conn.Close()
