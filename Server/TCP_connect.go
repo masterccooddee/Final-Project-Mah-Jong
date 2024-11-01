@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -11,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/go-zeromq/zmq4"
 )
 
 type player_in struct {
@@ -46,15 +49,15 @@ func IDcheck(ID string) bool {
 	return false
 }
 
-/********************* Command ********************\
- * 			ROOM MAKE 		(Create a room)       *
- *			ROOM JOIN XX 	(XX is room ID)       *
- * 			ROOM FIND 		(Auto find a room)    *
- * 			ROOM LEAVE 		(Leave the room)      *
- * 			REG XX 			(Register ID XX:ID)   *
- * 			LOGIN XX 		(Login ID XX:ID)      *
- * 			LOGOUT 			(Logout)              *
-\**************************************************/
+/******************************* Command ******************************\
+ * 		ROOM MAKE 			(Create a room)       *
+ *		ROOM JOIN XX 			(XX is room ID)       *
+ * 		ROOM FIND 			(Auto find a room)    *
+ * 		ROOM LEAVE 			(Leave the room)      *
+ * 		REG XX 				(Register ID XX:ID)   *
+ * 		LOGIN XX 			(Login ID XX:ID)      *
+ * 		LOGOUT 				(Logout)              *
+\**********************************************************************/
 
 func Cli_handle(conn net.Conn, player player_in) {
 	// 3. 讀取資料
@@ -109,7 +112,15 @@ func Cli_handle(conn net.Conn, player player_in) {
 					conn.Write([]byte("You are already in a room\n"))
 					continue
 				}
-				room_id, _ := strconv.Atoi(command[2])
+				if len(command) < 3 {
+					conn.Write([]byte("False Command\n"))
+					continue
+				}
+				room_id, err := strconv.Atoi(command[2])
+				if err != nil {
+					conn.Write([]byte("False Command\n"))
+					continue
+				}
 				room := roomlist[room_id]
 				room.go_in_room(&player, room_id)
 
@@ -117,6 +128,11 @@ func Cli_handle(conn net.Conn, player player_in) {
 				if player.Room_ID != -1 {
 					conn.Write([]byte("You are already in a room\n"))
 					continue
+				}
+
+				// 等待清空房間
+				for cleaning {
+
 				}
 
 				mutex.Lock()
@@ -185,6 +201,28 @@ func Cli_handle(conn net.Conn, player player_in) {
 
 }
 
+func zmqrecv() {
+	for {
+		//可能要預防send recv同時進行
+		msg, err := router.Recv()
+		if err != nil {
+			log.Println("Error receiving message:", err)
+			return
+		}
+		ROOMID := string(msg.Frames[1])
+		msgout := string(msg.Frames[2])
+
+		roomID, err := strconv.Atoi(ROOMID)
+		if err != nil {
+			log.Println("Error converting ROOMID to int:", err)
+			continue
+		}
+		room := roomlist[roomID]
+		room.recvchan <- msgout
+
+	}
+}
+
 func startserver() {
 	//建立tcp连接
 	// 1. 建立監聽器
@@ -196,6 +234,24 @@ func startserver() {
 	}
 
 	fmt.Println("Server is listening on port 8080")
+
+	// ROOM 的規則運行與player的互動
+	router = zmq4.NewRouter(context.Background())
+	defer router.Close()
+
+	// ROUTER 監聽端點
+	err = router.Listen("tcp://*:7125")
+	if err != nil {
+		log.Fatal("Error starting router:", err)
+		return
+	}
+
+	fmt.Println("Router is listening on port 7125")
+
+	go zmqrecv()
+
+	go RoomCleaner()
+
 	// 2. 建立連線
 
 	for {
