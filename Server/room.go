@@ -12,10 +12,12 @@ type Player struct {
 	player_in
 	Ma       mao
 	TingCard bool
-	Pong     bool
-	Eat      bool
-	Gang     bool
-	Position int
+	Pong     map[string]struct{}
+	Chi      map[string]struct{}
+	Gang     map[string]struct{}
+	clean    bool //門清
+	Position int  //0.東 1.南 2.西 3.北
+	Point    int
 }
 
 type Room struct {
@@ -23,24 +25,29 @@ type Room struct {
 	Cardset  mao
 	Room_ID  int
 	private  bool
-	running  bool
-	recvchan chan string
+	running  bool        //遊戲是否開始
+	recvchan chan string //接收玩家訊息
+	lastcard int         //剩幾張
+	round    int         //第幾局 如：東1
+	wind     int         // 0.東 1.南 2.西 3.北
+	bunround int         //本場
+	gang     [4]int      //槓的次數
 }
 
 var roomlist = make(map[int]*Room)
 
 func (r *Room) Addplayer(player player_in) {
-	playerinfo := Player{player_in: player, Ma: mao{}}
+	playerinfo := Player{player_in: player, Ma: mao{}, Point: 25000, clean: true, Pong: make(map[string]struct{}), Chi: make(map[string]struct{}), Gang: make(map[string]struct{})}
 	r.Players = append(r.Players, &playerinfo)
 }
 
 func makeRoom(room_id int, private bool) {
 
-	room := &(Room{Room_ID: room_id, private: private})
+	room := &(Room{Room_ID: room_id, private: private, round: 1, wind: 0})
 	roomlist[room_id] = room
 	RROM := roomlist[room_id]
 	RROM.recvchan = make(chan string, 2)
-	go RROM.startgame()
+	//go RROM.startgame()
 
 }
 
