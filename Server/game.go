@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
 	"math/rand/v2"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/go-zeromq/zmq4"
 )
@@ -12,6 +15,7 @@ var router zmq4.Socket
 
 type Position struct {
 	Pos map[string]int
+	Ma  mao
 }
 
 var zmqmu sync.Mutex
@@ -30,7 +34,7 @@ func (r *Room) sendtoall(msg string) {
 }
 
 // 除了now player之外的玩家能不能鳴牌
-func (r *Room) MingCard(player *Player, card string) (count int) { //count 有幾個人能鳴牌
+func (r *Room) MingCard(player *Player, card string, now int) (count int) { //count 有幾個人能鳴牌
 	// 判斷是否有人能鳴牌
 	var po, g, c bool
 	for _, p := range r.Players {
@@ -52,7 +56,7 @@ func (r *Room) MingCard(player *Player, card string) (count int) { //count 有�
 		}
 		// 判斷能否吃 (只有下家可以吃)
 		comb := canChi(p, card)
-		if isNextPlayer(p) && comb != nil {
+		if isNextPlayer(p, now) && comb != nil {
 			// 處理吃牌邏輯
 			c = true
 		}
@@ -129,7 +133,7 @@ func canChi(player *Player, card string) (combinations [][]string) {
 
 }
 
-func isNextPlayer(player *Player) bool {
+func isNextPlayer(player *Player, now int) bool {
 	// 判斷是否為下家
 	// 假設玩家順序存儲在 r.Players 中
 	return player.Position == (now+1)%4
@@ -162,47 +166,50 @@ func (p *Player) HasCard(cardkind string, cardValue int) bool {
 
 }
 
-var now int //當前玩家
-
 func (r *Room) startgame() {
-
+	var now int //當前玩家
 	//確認是否有4個玩家
-	// for len(r.Players) != 4 {
-	// 	if _, exist := roomlist[r.Room_ID]; exist == false {
-	// 		return
-	// 	}
-	// 	log.Println("Room", r.Room_ID, "is not full", len(r.Players))
-	// 	time.Sleep(1 * time.Second)
-	// }
-	r.Addplayer(player_in{ID: "1", conn: nil})
-	r.Addplayer(player_in{ID: "2", conn: nil})
-	r.Addplayer(player_in{ID: "3", conn: nil})
-	r.Addplayer(player_in{ID: "4", conn: nil})
+	for len(r.Players) != 4 {
+		if _, exist := roomlist[r.Room_ID]; exist == false {
+			return
+		}
+		log.Println("Room", r.Room_ID, "is not full", len(r.Players))
+		time.Sleep(1 * time.Second)
+	}
+	// r.Addplayer(player_in{ID: "1", conn: nil})
+	// r.Addplayer(player_in{ID: "2", conn: nil})
+	// r.Addplayer(player_in{ID: "3", conn: nil})
+	// r.Addplayer(player_in{ID: "4", conn: nil})
 
 	//通知所有玩家遊戲開始
 	r.running = true
-	//r.sendtoall("Game start")
+	r.sendtoall("Game start")
 
-	//隨機選座位
-	//position := make(map[string]int)
+	//隨機選座位、發牌
+	r.Cardset.addCard()
+	position := make(map[string]int)
 	rand.Shuffle(len(r.Players), func(i, j int) { r.Players[i], r.Players[j] = r.Players[j], r.Players[i] })
+
+	var cli_info Position
 	for i, p := range r.Players {
 		p.Position = i
-		//position[p.ID] = p.Position
+		position[p.ID] = p.Position
+		p.Ma.Card = r.Cardset.Card[:13]
+		r.Cardset.Card = r.Cardset.Card[13:]
+		p.Ma.splitCard()
+
 	}
-	//通知所有玩家座位
-	//cli_pos, _ := json.Marshal(Position{Pos: position})
-	//r.sendtoall(string(cli_pos))
+
+	for _, p := range r.Players {
+		//打包座位、手牌並發送給玩家
+		cli_info.Pos = position
+		cli_info.Ma = p.Ma
+		cli_pos, _ := json.Marshal(cli_info)
+		sendtoplayer(string(cli_pos), p.ID)
+	}
 
 	now = 0
 
-	//發牌
-	r.Cardset.addCard()
-	for i := 0; i < 4; i++ {
-		r.Players[i].Ma.Card = r.Cardset.Card[:13]
-		r.Cardset.Card = r.Cardset.Card[13:]
-		r.Players[i].Ma.splitCard()
-	}
 	num := len(r.Cardset.Card)
 	r.lastcard = num - 14
 
@@ -227,8 +234,9 @@ func (r *Room) startgame() {
 			//接收玩家出的牌
 			getcard := <-r.recvchan
 			//判斷有沒有人能鳴牌 (順序：胡、槓、碰、吃)
-			r.MingCard(r.Players[now], getcard)
+			r.MingCard(r.Players[now], getcard, now)
 
+			now = (now + 1) % 4
 		}
 	}
 

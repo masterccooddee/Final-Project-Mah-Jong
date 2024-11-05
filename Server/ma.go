@@ -14,6 +14,7 @@ type mao struct {
 	Word map[string]struct{}
 }
 
+// 東 : 1 南 : 2 西 : 3 北 : 4 白 : 5 發 : 6  中: 7
 func (m *mao) addCard() {
 	kind := []string{"w", "t", "l"}
 
@@ -24,13 +25,13 @@ func (m *mao) addCard() {
 				m.Card = append(m.Card, word)
 			}
 		}
-		m.Card = append(m.Card, "bai")
-		m.Card = append(m.Card, "zhong")
-		m.Card = append(m.Card, "fa")
-		m.Card = append(m.Card, "dong")
-		m.Card = append(m.Card, "nan")
-		m.Card = append(m.Card, "xi")
-		m.Card = append(m.Card, "bei")
+		m.Card = append(m.Card, "1") //東
+		m.Card = append(m.Card, "2") //南
+		m.Card = append(m.Card, "3") //西
+		m.Card = append(m.Card, "4") //北
+		m.Card = append(m.Card, "5") //白
+		m.Card = append(m.Card, "6") //發
+		m.Card = append(m.Card, "7") //中
 	}
 
 	rand.Shuffle(len(m.Card), func(i, j int) { m.Card[i], m.Card[j] = m.Card[j], m.Card[i] })

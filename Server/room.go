@@ -47,7 +47,7 @@ func makeRoom(room_id int, private bool) {
 	roomlist[room_id] = room
 	RROM := roomlist[room_id]
 	RROM.recvchan = make(chan string, 2)
-	//go RROM.startgame()
+	go RROM.startgame()
 
 }
 

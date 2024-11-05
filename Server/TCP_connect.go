@@ -67,6 +67,7 @@ func Cli_handle(conn net.Conn, player player_in) {
 		n, err := conn.Read(data)
 		if n == 0 {
 			fmt.Printf("\n%v Connection closed\n", conn.RemoteAddr())
+			delete(playerlist, player.ID)
 			return
 		}
 		if err != nil {
