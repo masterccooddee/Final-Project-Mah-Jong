@@ -24,13 +24,14 @@ func (m *mao) addCard() {
 				m.Card = append(m.Card, word)
 			}
 		}
-		m.Card = append(m.Card, "bai")
-		m.Card = append(m.Card, "zhong")
-		m.Card = append(m.Card, "fa")
-		m.Card = append(m.Card, "dong")
-		m.Card = append(m.Card, "nan")
-		m.Card = append(m.Card, "xi")
-		m.Card = append(m.Card, "bei")
+
+		m.Card = append(m.Card, "1") // 東
+		m.Card = append(m.Card, "2") // 南
+		m.Card = append(m.Card, "3") // 西
+		m.Card = append(m.Card, "4") // 北
+		m.Card = append(m.Card, "5") // 中
+		m.Card = append(m.Card, "6") // 白
+		m.Card = append(m.Card, "7") // 發
 	}
 
 	rand.Shuffle(len(m.Card), func(i, j int) { m.Card[i], m.Card[j] = m.Card[j], m.Card[i] })
