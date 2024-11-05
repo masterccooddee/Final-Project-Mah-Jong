@@ -12,13 +12,6 @@ import (
 	"github.com/go-zeromq/zmq4"
 )
 
-type mao struct {
-	Card []string
-	Wan  []string
-	Tong []string
-	Tiao []string
-}
-
 type Position struct {
 	Pos map[string]int
 }
