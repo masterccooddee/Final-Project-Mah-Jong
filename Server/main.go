@@ -1,19 +1,27 @@
 package main
 
+import "fmt"
+
 func main() {
 
-	startserver()
-	// makeRoom(1, false)
-	// player := Player{}
-	// player.Ma.addCard()
-	// //player.Ma.Card = []string{"1", "1", "1"}
-	// player.Ma.splitCard()
-	// fmt.Println(len(player.Ma.Card))
-	// player.Pong = make(map[string]struct{})
-	// player.Pong["w1"] = struct{}{}
-	// player.Position = 3
-	// now = 2
-	// //comb := canChi(&player, "w6")
-	// fmt.Println(canChi(&player, "w6"))
+	//ming := []string{"Chi 1 w1", "Pong 2 w1", "Gang 3 w1", "Hu 4 w1"}
+
+	//startserver()
+	set := []string{"1", "2", "3", "4"}
+	set = append(set[1:], set[0])
+	fmt.Println(set)
+	// order := map[string]int{
+	// 	"Hu":   1,
+	// 	"Gang": 2,
+	// 	"Pong": 3,
+	// 	"Chi":  4,
+	// }
+	// sort.Slice(ming, func(i, j int) bool {
+	// 	msgI := strings.Split(ming[i], " ")
+	// 	msgJ := strings.Split(ming[j], " ")
+	// 	return order[msgI[0]] < order[msgJ[0]]
+	// })
+
+	// fmt.Println(ming[0])
 
 }

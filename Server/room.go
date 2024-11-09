@@ -15,6 +15,7 @@ type Player struct {
 	Pong     map[string]struct{}
 	Chi      map[string]struct{}
 	Gang     map[string]struct{}
+
 	clean    bool //門清
 	Position int  //0.東 1.南 2.西 3.北
 	Point    int

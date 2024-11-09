@@ -210,6 +210,7 @@ func zmqrecv() {
 			log.Println("Error receiving message:", err)
 			return
 		}
+
 		ROOMID := string(msg.Frames[1])
 		msgout := string(msg.Frames[2])
 
