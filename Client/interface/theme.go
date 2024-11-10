@@ -1,6 +1,6 @@
 //go:generate fyne bundle -o bundled.go assets
 
-package main
+package ui
 
 import (
 	"image/color"
