@@ -24,13 +24,8 @@ func UI() {
 	x := a.NewWindow("Login or Register")
 	x.Resize(fyne.NewSize(300, 100))
 
-	x.SetContent(LORinterface())
-	if !LoginSuccess {
-		x.Show()
-	} else {
-		x.Close()
-		w.Show()
-	}
+	x.SetContent(LORinterface(&x, &w))
+	x.Show()
 
 	a.Run()
 
