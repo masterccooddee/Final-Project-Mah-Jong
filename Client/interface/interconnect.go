@@ -27,79 +27,66 @@ var RoomID string
 var msg zmq4.Msg
 var in string
 
-/* func serverexit(conn net.Conn) {
+func rrecv() string {
 	data := make([]byte, 4096)
 
 	var num int
-	for {
-
-		num, _ = conn.Read(data)
-		if num == 0 {
-			fmt.Println("\nConnection closed")
-			os.Exit(1)
-		}
-
-		in2 := string(data[:num])
-		in = strings.TrimSpace(in2)
-		out := strings.Split(in, " ")
-		if out[0] == "True" {
-			if out[1] == "Room" {
-				RoomID = out[2]
-			}
-		}
-
-		fmt.Printf("\rFrom Server -> %s\n", string(data[:num]))
-
+	num, _ = conn.Read(data)
+	if num == 0 {
+		fmt.Println("\nConnection closed")
+		os.Exit(1)
 	}
 
-} */
+	in2 := string(data[:num])
+	in = strings.TrimSpace(in2)
+	return in
 
-func LORinterface() fyne.CanvasObject {
+}
+func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.CanvasObject {
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Enter text...")
+	received_content := canvas.NewText("", color.Black)
+	received_content.TextSize = 12
 
-	received_content := container.NewVBox()
 	Send_Login_content := container.NewVBox(widget.NewButton("Login", func() {
 		fmt.Println("Logging:", input.Text)
 		conn.Write([]byte("LOGIN " + input.Text))
 		input.SetText("")
+		recv := rrecv()
+		fmt.Println(recv)
+		recv = strings.Split(recv, " ")[0]
+		if recv == "Welcome" {
+			(*loginwindow).Close()
+			(*openwindow).Show()
+		} else {
+			fmt.Println("Login failed")
+			received_content.Text = "Login failed"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+		}
 	}))
 
 	Send_Register_content := container.NewVBox(widget.NewButton("Register", func() {
 		fmt.Println("Registering:", input.Text)
 		conn.Write([]byte("REG " + input.Text))
 		input.SetText("")
+		recv := rrecv()
+		fmt.Println(recv)
+		recv = strings.Split(recv, " ")[0]
+		if recv == "Register" {
+			(*loginwindow).Close()
+			(*openwindow).Show()
+		} else {
+			fmt.Println("ID already exist")
+			received_content.Text = "ID already exist"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+		}
 	}))
 
 	form := widget.NewForm(widget.NewFormItem("Username", input))
 
 	content := container.NewVBox(form, Send_Login_content, Send_Register_content, received_content)
-
-	go func() {
-		for {
-			data := make([]byte, 4096)
-			num, err := conn.Read(data)
-			if err != nil {
-				fmt.Println("Error reading:", err)
-				return
-			}
-			if num > 0 {
-				message := string(data[:num])
-				message = strings.TrimSpace(message)
-				received_text := canvas.NewText(message, color.Black)
-				msg_split := strings.Split(message, " ")
-
-				received_content.RemoveAll()
-				received_content.Add(received_text)
-				received_content.Refresh()
-
-				if msg_split[0] == "Register" || msg_split[0] == "Welcome" {
-					LoginSuccess = true
-					return
-				}
-			}
-		}
-	}()
 
 	return content
 }

@@ -264,7 +264,7 @@ func startserver() {
 			return
 
 		}
-		conn.Write([]byte("Welcome to the server\n"))
+		//conn.Write([]byte("Welcome to the server\n"))
 		go Cli_handle(conn, player_in{})
 
 	}
