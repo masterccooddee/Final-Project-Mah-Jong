@@ -25,7 +25,6 @@ func UI() {
 	x.Resize(fyne.NewSize(300, 100))
 
 	x.SetContent(LORinterface(&x, &w))
-
 	x.Show()
 
 	a.Run()

@@ -41,7 +41,22 @@ func rrecv() string {
 	in = strings.TrimSpace(in2)
 	return in
 
+func rrecv() string {
+	data := make([]byte, 4096)
+
+	var num int
+	num, _ = conn.Read(data)
+	if num == 0 {
+		fmt.Println("\nConnection closed")
+		os.Exit(1)
+	}
+
+	in2 := string(data[:num])
+	in = strings.TrimSpace(in2)
+	return in
+
 }
+
 func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.CanvasObject {
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Enter text...")
