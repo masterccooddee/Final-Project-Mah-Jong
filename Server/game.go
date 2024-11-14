@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"math/rand/v2"
@@ -34,6 +35,7 @@ var zmqmu sync.Mutex
 func sendtoplayer(msg string, ID string) {
 	msgout := zmq4.NewMsgFrom([]byte(ID), []byte(msg))
 	zmqmu.Lock()
+	zmqloger.Println("Send to [yellow]", ID, "[reset]:", msg)
 	router.SendMulti(msgout)
 	zmqmu.Unlock()
 }
@@ -183,290 +185,297 @@ func (p *Player) HasCard(cardkind string, cardValue int) bool {
 
 }
 
-func (r *Room) startgame() {
-start:
-	var now int //當前玩家
-	var baocard []string
-	var hGang bool
-	var hPong bool
-	var hChi bool
-	//確認是否有4個玩家
-	for len(r.Players) != 4 {
-		if _, exist := roomlist[r.Room_ID]; exist == false {
-			return
+func (r *Room) startgame(ctx context.Context) {
+
+	select {
+	case <-ctx.Done():
+		return
+	default:
+	start:
+		var now int //當前玩家
+		var baocard []string
+		var hGang bool
+		var hPong bool
+		var hChi bool
+		//確認是否有4個玩家
+		for len(r.Players) != 4 {
+			if _, exist := roomlist[r.Room_ID]; exist == false {
+				return
+			}
+			//log.Println("Room", r.Room_ID, "is not full", len(r.Players))
+			time.Sleep(1 * time.Second)
 		}
-		log.Println("Room", r.Room_ID, "is not full", len(r.Players))
-		time.Sleep(1 * time.Second)
-	}
-	// r.Addplayer(player_in{ID: "1", conn: nil})
-	// r.Addplayer(player_in{ID: "2", conn: nil})
-	// r.Addplayer(player_in{ID: "3", conn: nil})
-	// r.Addplayer(player_in{ID: "4", conn: nil})
+		// r.Addplayer(player_in{ID: "1", conn: nil})
+		// r.Addplayer(player_in{ID: "2", conn: nil})
+		// r.Addplayer(player_in{ID: "3", conn: nil})
+		// r.Addplayer(player_in{ID: "4", conn: nil})
 
-	//通知所有玩家遊戲開始
-	r.running = true
-	r.sendtoall("Game start")
+		//通知所有玩家遊戲開始
+		r.running = true
+		r.sendtoall("Game start")
 
-	//隨機選座位、發牌
-	r.Cardset.addCard()
-	position := make(map[string]int)
-	rand.Shuffle(len(r.Players), func(i, j int) { r.Players[i], r.Players[j] = r.Players[j], r.Players[i] })
+		//隨機選座位、發牌
+		r.Cardset.addCard()
+		position := make(map[string]int)
+		rand.Shuffle(len(r.Players), func(i, j int) { r.Players[i], r.Players[j] = r.Players[j], r.Players[i] })
 
-	var cli_info Position
-	for i, p := range r.Players {
-		p.Position = i
-		position[p.ID] = p.Position
-		p.Ma.Card = r.Cardset.Card[:13]
-		r.Cardset.Card = r.Cardset.Card[13:]
-		p.Ma.splitCard()
+		var cli_info Position
+		for i, p := range r.Players {
+			p.Position = i
+			position[p.ID] = p.Position
+			p.Ma.Card = r.Cardset.Card[:13]
+			r.Cardset.Card = r.Cardset.Card[13:]
+			p.Ma.splitCard()
 
-	}
+		}
 
-	for _, p := range r.Players {
-		//打包座位、手牌並發送給玩家
-		cli_info.Pos = position
-		cli_info.Ma = p.Ma
-		cli_pos, _ := json.Marshal(cli_info)
-		sendtoplayer(string(cli_pos), p.ID)
-	}
+		for _, p := range r.Players {
+			//打包座位、手牌並發送給玩家
+			cli_info.Pos = position
+			cli_info.Ma = p.Ma
+			cli_pos, _ := json.Marshal(cli_info)
+			sendtoplayer(string(cli_pos), p.ID)
+		}
 
-	now = 0
+		now = 0
 
-	num := len(r.Cardset.Card)
-	r.lastcard = num - 14
-	baocard = r.Cardset.Card[num-14:]
-	log.Println(baocard)
+		num := len(r.Cardset.Card)
+		r.lastcard = num - 14
+		baocard = r.Cardset.Card[num-14:]
+		log.Println(baocard)
 
-	for r.round < 5 { //到東4局結束
+		for r.round < 5 { //到東4局結束
 
-		for r.lastcard > 0 { //直到剩0張牌
+			for r.lastcard > 0 { //直到剩0張牌
 
-			//發一張牌
-			if !hPong && !hChi {
-				if !hGang {
-					r.Players[now].Ma.Card = append(r.Players[now].Ma.Card, r.Cardset.Card[0])
-					r.Cardset.Card = r.Cardset.Card[1:]
+				//發一張牌
+				if !hPong && !hChi {
+					if !hGang {
+						r.Players[now].Ma.Card = append(r.Players[now].Ma.Card, r.Cardset.Card[0])
+						r.Cardset.Card = r.Cardset.Card[1:]
 
-				} else { //槓拿嶺上牌
-					hGang = false
-					r.Players[now].Ma.Card = append(r.Players[now].Ma.Card, r.Cardset.Card[len(r.Cardset.Card)-1])
-					r.Cardset.Card = r.Cardset.Card[:len(r.Cardset.Card)-1]
+					} else { //槓拿嶺上牌
+						hGang = false
+						r.Players[now].Ma.Card = append(r.Players[now].Ma.Card, r.Cardset.Card[len(r.Cardset.Card)-1])
+						r.Cardset.Card = r.Cardset.Card[:len(r.Cardset.Card)-1]
+					}
+					r.lastcard--
+
+					//通知玩家抽到的牌
+					sendtoplayer(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
+					//通知其他玩家有人抽牌
+					for i, p := range r.Players {
+						if i != now {
+							sendtoplayer("Draw", p.ID)
+						}
+					}
+
+					//有沒有辦法胡牌、槓牌
+					if canGang(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) || r.Players[now].HasPong(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {
+						//槓牌
+						sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
+
+						getcard := strings.TrimSpace(<-r.recvchan)
+						if getcard == "Gang" {
+							//槓牌
+							if canGang(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {
+								for i := 0; i < 3; i++ {
+									r.Players[now].Ma.removeCard(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1])
+								}
+							} else {
+								delete(r.Players[now].Pong, r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1])
+							}
+							r.Players[now].Ma.splitCard()
+							r.Players[now].Gang[r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]] = struct{}{}
+							hGang = true
+
+							for _, p := range r.Players {
+								if p.ID != r.Players[now].ID {
+									sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]+" "+r.Players[now].ID, p.ID)
+								}
+							}
+							continue
+						}
+					}
+
 				}
-				r.lastcard--
+				//接收玩家出的牌
+				outcard := strings.TrimSpace(<-r.recvchan)
+				log.Println("Player", r.Players[now].ID, "discard", outcard)
+				hChi = false
+				hPong = false
+				r.Players[now].Ma.removeCard(outcard)
+				r.Players[now].Ma.splitCard()
 
-				//通知玩家抽到的牌
-				sendtoplayer(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
-				//通知其他玩家有人抽牌
-				for i, p := range r.Players {
-					if i != now {
-						sendtoplayer("Draw", p.ID)
+				//判斷有沒有人能鳴牌 (順序：胡、槓、碰、吃)
+				var ming []string
+				cnt := r.MingCard(r.Players[now], outcard, now)
+
+			loop:
+				for i := 0; i < (cnt); i++ {
+					//接收玩家鳴牌
+					getcard := strings.TrimSpace(<-r.recvchan)
+					ming = append(ming, getcard)
+					cnt--
+					if cnt == 0 {
+						break loop
+					}
+
+					//有人鳴牌、倒數3秒可以鳴牌
+					timer := time.NewTimer(3 * time.Second)
+
+					for {
+						select {
+						case getcard = <-r.recvchan:
+							getcard = strings.TrimSpace(getcard)
+							ming = append(ming, getcard)
+							cnt--
+							if cnt == 0 {
+								break loop
+							}
+						case <-timer.C:
+							break loop
+						}
 					}
 				}
 
-				//有沒有辦法胡牌、槓牌
-				if canGang(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) || r.Players[now].HasPong(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {
-					//槓牌
-					sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
+				//清空channel
+			clean:
+				for {
+					select {
+					case <-r.recvchan:
+					default:
+						break clean
+					}
+				}
+				//格式： 動作 位置 牌 ex: Pong 1 w1, Chi 1 0 (0是種類)
+				if ming != nil {
 
-					getcard := strings.TrimSpace(<-r.recvchan)
-					if getcard == "Gang" {
+					sort.Slice(ming, func(i, j int) bool {
+						msgI := strings.Split(ming[i], " ")
+						msgJ := strings.Split(ming[j], " ")
+						return order[msgI[0]] < order[msgJ[0]]
+					})
+
+					msg := strings.Split(ming[0], " ")
+					pos, _ := strconv.Atoi(msg[1])
+					if msg[0] == "Hu" {
+						//胡牌
+
+						break
+
+					}
+					if msg[0] == "Gang" {
 						//槓牌
-						if canGang(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {
-							for i := 0; i < 3; i++ {
-								r.Players[now].Ma.removeCard(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1])
-							}
-						} else {
-							delete(r.Players[now].Pong, r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1])
+
+						for i := 0; i < 3; i++ {
+							r.Players[pos].Ma.removeCard(outcard)
 						}
-						r.Players[now].Ma.splitCard()
-						r.Players[now].Gang[r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]] = struct{}{}
+						r.Players[pos].Ma.splitCard()
+						r.Players[pos].clean = false
+						r.Players[pos].Gang[outcard] = struct{}{}
 						hGang = true
 
+						now = pos
 						for _, p := range r.Players {
 							if p.ID != r.Players[now].ID {
-								sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]+" "+r.Players[now].ID, p.ID)
+								sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
 							}
 						}
 						continue
 					}
-				}
 
-			}
-			//接收玩家出的牌
-			outcard := strings.TrimSpace(<-r.recvchan)
-			log.Println("Player", r.Players[now].ID, "discard", outcard)
-			hChi = false
-			hPong = false
-			r.Players[now].Ma.removeCard(outcard)
-			r.Players[now].Ma.splitCard()
-
-			//判斷有沒有人能鳴牌 (順序：胡、槓、碰、吃)
-			var ming []string
-			cnt := r.MingCard(r.Players[now], outcard, now)
-
-		loop:
-			for i := 0; i < (cnt); i++ {
-				//接收玩家鳴牌
-				getcard := strings.TrimSpace(<-r.recvchan)
-				ming = append(ming, getcard)
-				cnt--
-				if cnt == 0 {
-					break loop
-				}
-
-				//有人鳴牌、倒數3秒可以鳴牌
-				timer := time.NewTimer(3 * time.Second)
-
-				for {
-					select {
-					case getcard = <-r.recvchan:
-						getcard = strings.TrimSpace(getcard)
-						ming = append(ming, getcard)
-						cnt--
-						if cnt == 0 {
-							break loop
+					if msg[0] == "Pong" {
+						//碰牌
+						hPong = true
+						for i := 0; i < 2; i++ {
+							r.Players[pos].Ma.removeCard(outcard)
 						}
-					case <-timer.C:
-						break loop
+						r.Players[pos].Ma.splitCard()
+						r.Players[pos].Pong[outcard] = struct{}{}
+
+						now = pos
+
+						for _, p := range r.Players {
+							if p.ID != r.Players[now].ID {
+								sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
+							}
+						}
+						continue
 					}
+
+					if msg[0] == "Chi" {
+						hChi = true
+
+						num, _ := strconv.Atoi(string(outcard[1]))
+						switch msg[2] {
+						case "0":
+							r.Players[pos].Chi[outcard+" "+string(outcard[0])+strconv.Itoa(num+1)+" "+string(outcard[0])+strconv.Itoa(num+2)] = struct{}{}
+							r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num+1))
+							r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num+2))
+						case "1":
+							r.Players[pos].Chi[string(outcard[0])+strconv.Itoa(num-1)+" "+outcard+" "+string(outcard[0])+strconv.Itoa(num+1)] = struct{}{}
+							r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num-1))
+							r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num+1))
+						case "2":
+							r.Players[pos].Chi[string(outcard[0])+strconv.Itoa(num-2)+" "+string(outcard[0])+strconv.Itoa(num-1)+" "+outcard] = struct{}{}
+							r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num-2))
+							r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num-1))
+						}
+						r.Players[pos].Ma.splitCard()
+
+						now = pos
+						for _, p := range r.Players {
+							if p.ID != r.Players[now].ID {
+								sendtoplayer("Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
+							}
+						}
+						continue
+					}
+
+					//處理順序：胡、槓、碰、吃
 				}
+				ming = nil
+
+				now = (now + 1) % 4
 			}
 
-			//清空channel
-		clean:
-			for {
-				select {
-				case <-r.recvchan:
-				default:
-					break clean
-				}
+			now = 0
+			r.Players = append(r.Players[1:], r.Players[0])
+			r.Cardset = mao{}
+			r.Cardset.addCard()
+			r.Cardset.splitCard()
+			for i, p := range r.Players {
+				p.Position = i
+				p.clean = true
+				p.Chi = nil
+				p.Pong = nil
+				p.Gang = nil
+				p.TingCard = false
+				p.Ma.Card = r.Cardset.Card[:13]
+				p.Ma.splitCard()
+				r.Cardset.Card = r.Cardset.Card[13:]
 			}
-			//格式： 動作 位置 牌 ex: Pong 1 w1, Chi 1 0 (0是種類)
-			if ming != nil {
+			num = len(r.Cardset.Card)
+			r.lastcard = num - 14
+			baocard = r.Cardset.Card[num-14:]
+			r.round++
 
-				sort.Slice(ming, func(i, j int) bool {
-					msgI := strings.Split(ming[i], " ")
-					msgJ := strings.Split(ming[j], " ")
-					return order[msgI[0]] < order[msgJ[0]]
-				})
-
-				msg := strings.Split(ming[0], " ")
-				pos, _ := strconv.Atoi(msg[1])
-				if msg[0] == "Hu" {
-					//胡牌
-
-					break
-
-				}
-				if msg[0] == "Gang" {
-					//槓牌
-
-					for i := 0; i < 3; i++ {
-						r.Players[pos].Ma.removeCard(outcard)
-					}
-					r.Players[pos].Ma.splitCard()
-					r.Players[pos].clean = false
-					r.Players[pos].Gang[outcard] = struct{}{}
-					hGang = true
-
-					now = pos
-					for _, p := range r.Players {
-						if p.ID != r.Players[now].ID {
-							sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
-						}
-					}
-					continue
-				}
-
-				if msg[0] == "Pong" {
-					//碰牌
-					hPong = true
-					for i := 0; i < 2; i++ {
-						r.Players[pos].Ma.removeCard(outcard)
-					}
-					r.Players[pos].Ma.splitCard()
-					r.Players[pos].Pong[outcard] = struct{}{}
-
-					now = pos
-
-					for _, p := range r.Players {
-						if p.ID != r.Players[now].ID {
-							sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
-						}
-					}
-					continue
-				}
-
-				if msg[0] == "Chi" {
-					hChi = true
-
-					num, _ := strconv.Atoi(string(outcard[1]))
-					switch msg[2] {
-					case "0":
-						r.Players[pos].Chi[outcard+" "+string(outcard[0])+strconv.Itoa(num+1)+" "+string(outcard[0])+strconv.Itoa(num+2)] = struct{}{}
-						r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num+1))
-						r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num+2))
-					case "1":
-						r.Players[pos].Chi[string(outcard[0])+strconv.Itoa(num-1)+" "+outcard+" "+string(outcard[0])+strconv.Itoa(num+1)] = struct{}{}
-						r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num-1))
-						r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num+1))
-					case "2":
-						r.Players[pos].Chi[string(outcard[0])+strconv.Itoa(num-2)+" "+string(outcard[0])+strconv.Itoa(num-1)+" "+outcard] = struct{}{}
-						r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num-2))
-						r.Players[pos].Ma.removeCard(string(outcard[0]) + strconv.Itoa(num-1))
-					}
-					r.Players[pos].Ma.splitCard()
-
-					now = pos
-					for _, p := range r.Players {
-						if p.ID != r.Players[now].ID {
-							sendtoplayer("Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
-						}
-					}
-					continue
-				}
-
-				//處理順序：胡、槓、碰、吃
-			}
-			ming = nil
-
-			now = (now + 1) % 4
 		}
 
-		now = 0
-		r.Players = append(r.Players[1:], r.Players[0])
+		r.running = false
+		r.Players = nil
 		r.Cardset = mao{}
-		r.Cardset.addCard()
-		r.Cardset.splitCard()
-		for i, p := range r.Players {
-			p.Position = i
-			p.clean = true
-			p.Chi = nil
-			p.Pong = nil
-			p.Gang = nil
-			p.TingCard = false
-			p.Ma.Card = r.Cardset.Card[:13]
-			p.Ma.splitCard()
-			r.Cardset.Card = r.Cardset.Card[13:]
+		r.round = 1
+		r.wind = 0
+		r.bunround = 0
+		r.gang = [4]int{}
+		if r.private {
+			delete(roomlist, r.Room_ID)
+		} else {
+			goto start
 		}
-		num = len(r.Cardset.Card)
-		r.lastcard = num - 14
-		baocard = r.Cardset.Card[num-14:]
-		r.round++
 
-	}
-
-	r.running = false
-	r.Players = nil
-	r.Cardset = mao{}
-	r.round = 1
-	r.wind = 0
-	r.bunround = 0
-	r.gang = [4]int{}
-	if r.private {
-		delete(roomlist, r.Room_ID)
-	} else {
-		goto start
 	}
 
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"math/rand"
 	"sort"
@@ -48,7 +49,7 @@ func makeRoom(room_id int, private bool) {
 	roomlist[room_id] = room
 	RROM := roomlist[room_id]
 	RROM.recvchan = make(chan string, 2)
-	go RROM.startgame()
+	go RROM.startgame(ctx)
 
 }
 
@@ -60,17 +61,17 @@ func (r *Room) go_in_room(player *player_in, room_id int) bool {
 
 			player.Room_ID = room_id
 			roomlist[room_id].Addplayer(*player)
-			log.Println("Player " + player.ID + " join room " + strconv.Itoa(room_id))
+			log.Println("[#FFA500]" + player.ID + "[reset] join room [yellow]" + strconv.Itoa(room_id) + "[reset]")
 			player.conn.Write([]byte("True Room " + strconv.Itoa(room_id)))
 			return true
 		} else {
 			player.conn.Write([]byte("False Room is full"))
-			log.Printf("Room %d is full, %s can't get in\n", room_id, player.ID)
+			log.Printf("[red]ERROR:[reset] Room %d is full, %s can't get in\n", room_id, player.ID)
 			return false
 		}
 	} else {
 		player.conn.Write([]byte("False Room not exist"))
-		log.Printf("Room %d not exist, %s can't get in\n", room_id, player.ID)
+		log.Printf("[red]ERROR:[reset] Room %d not exist, %s can't get in\n", room_id, player.ID)
 		return false
 	}
 
@@ -113,7 +114,7 @@ func (r *Room) leave_room(player *player_in) {
 		if p.ID == player.ID {
 			r.Players = append(r.Players[:i], r.Players[i+1:]...)
 			player.Room_ID = -1
-			log.Println("Player " + player.ID + " leave room " + strconv.Itoa(r.Room_ID))
+			log.Println("[#FFA500]" + player.ID + " [reset]leave room [yellow]" + strconv.Itoa(r.Room_ID) + "[reset]")
 			player.conn.Write([]byte("True Leave room"))
 			break
 		}
@@ -122,7 +123,7 @@ func (r *Room) leave_room(player *player_in) {
 
 var cleaning bool
 
-func RoomCleaner() {
+func RoomCleaner(ctx context.Context) {
 	for {
 		select {
 		case <-time.After(50 * time.Second):
@@ -131,12 +132,15 @@ func RoomCleaner() {
 			for id, r := range roomlist {
 				if len(r.Players) == 0 {
 					delete(roomlist, id)
-					log.Println("Room", id, "is empty, delete")
+					log.Println("Room[#FFA500]", id, "[reset]is empty, delete")
 				}
 
 			}
 			log.Println("Room clean finish")
 			cleaning = false
+		case <-ctx.Done():
+			return
 		}
+
 	}
 }
