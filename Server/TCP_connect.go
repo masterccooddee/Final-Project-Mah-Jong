@@ -78,11 +78,13 @@ func Cli_handle(conn net.Conn, player player_in, ctx context.Context) {
 				}
 			}
 			if n == 0 {
-				if player.Room_ID != -1 {
-					room := roomlist[player.Room_ID]
-					room.leave_room(&player)
+				if player.ID != "" {
+					if player.Room_ID != -1 {
+						room := roomlist[player.Room_ID]
+						room.leave_room(&player)
+					}
+					delete(playerlist, player.ID)
 				}
-				delete(playerlist, player.ID)
 				log.Printf("[#FFA500]%v[reset] Connection closed\n", conn.RemoteAddr())
 				return
 			}
@@ -209,6 +211,12 @@ func Cli_handle(conn net.Conn, player player_in, ctx context.Context) {
 					continue
 				}
 
+				if _, ok := playerlist[command[1]]; ok {
+					conn.Write([]byte("False ID already login\n"))
+					log.Println("[red]ERROR:[reset] ID already login")
+					continue
+				}
+
 				player.conn = conn
 				player.ID = command[1]
 				player.Room_ID = -1
@@ -249,7 +257,7 @@ func zmqrecv() {
 		}
 		room := roomlist[roomID]
 
-		msglog := fmt.Sprintf("Room [blue]%d[reset]: [yellow]%s[reset]-> %s", roomID, player_name, msgout)
+		msglog := fmt.Sprintf("Room [yellow]%d[reset]: [#FFA500]%s[reset] -> %s", roomID, player_name, msgout)
 		zmqloger.Println(msglog)
 
 		room.recvchan <- msgout

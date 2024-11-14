@@ -35,7 +35,7 @@ var zmqmu sync.Mutex
 func sendtoplayer(msg string, ID string) {
 	msgout := zmq4.NewMsgFrom([]byte(ID), []byte(msg))
 	zmqmu.Lock()
-	zmqloger.Println("Send to [yellow]", ID, "[reset]:", msg)
+	zmqloger.Printf("Send to [#FFA500]%s[reset] (Room [yellow]%d[reset]): %s", ID, playerlist[ID].Room_ID, msg)
 	router.SendMulti(msgout)
 	zmqmu.Unlock()
 }
