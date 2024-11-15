@@ -20,9 +20,11 @@ func UI() {
 	w := a.NewWindow("Mahjong")
 	w.Resize(fyne.NewSize(1024, 600))
 	w.SetContent(makeGUI())
+	w.CenterOnScreen()
 
 	x := a.NewWindow("Login or Register")
 	x.Resize(fyne.NewSize(300, 100))
+	x.CenterOnScreen()
 
 	x.SetContent(LORinterface(&x, &w))
 	x.Show()

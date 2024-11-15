@@ -19,12 +19,18 @@ import (
 
 type Position struct {
 	Pos map[string]int
+	Ma  mao
 }
 
+// for roomchat
+var dealer zmq4.Socket
+var ID string
+var msg zmq4.Msg
+
+// for room
 var conn net.Conn
 var err error
 var RoomID string
-var msg zmq4.Msg
 var in string
 
 func rrecv() string {
@@ -103,8 +109,6 @@ func interconnect() {
 
 	//go serverexit(conn)
 
-	var dealer zmq4.Socket
-	var ID string
 	for {
 		fmt.Print("Enter text: ")
 		reader := bufio.NewReader(os.Stdin)
