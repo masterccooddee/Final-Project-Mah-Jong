@@ -22,6 +22,7 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 	roommake := container.NewVBox(widget.NewButton("Make New Room", func() {
 		fmt.Println("Make New Room")
 		conn.Write([]byte("ROOM MAKE"))
+		input.SetText("")
 		recv := rrecv()
 		fmt.Println(recv)
 		msg := strings.Split(recv, " ")
@@ -47,11 +48,12 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 			(*received_content).Text = "Please enter a room ID"
 			(*received_content).Color = color.RGBA{255, 0, 0, 255}
 			(*received_content).Refresh()
-
+			return
 		} else {
 			conn.Write([]byte("ROOM JOIN " + RoomID))
 		}
 
+		input.SetText("")
 		recv := rrecv()
 		fmt.Println(recv)
 		msg := strings.Split(recv, " ")
