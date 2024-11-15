@@ -22,10 +22,12 @@ type Position struct {
 	Ma  mao
 }
 
+var myCards mao
+
 // for roomchat
+var pos Position
 var dealer zmq4.Socket
 var ID string
-var msg zmq4.Msg
 
 // for room
 var conn net.Conn
@@ -67,13 +69,13 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 			conn.Write([]byte("LOGIN " + input.Text))
 		}
 
-		ID = input.Text
+		ID = strings.TrimSpace(input.Text)
 		input.SetText("")
 		recv := rrecv()
 		fmt.Println(recv)
 		recv = strings.Split(recv, " ")[0]
 		if recv == "Welcome" {
-
+			LoginSuccess = true
 			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
 			defer dealer.Close()
 
@@ -83,26 +85,31 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 				return
 			}
 
-			go func() {
-
-				// DEALER 接收消息
-				msg, err = dealer.Recv()
-				fmt.Println((msg))
-				if err != nil {
-					fmt.Println("Error receiving message:", err)
-					return
-				}
-				fmt.Println("Received message:", string(msg.Frames[0]))
-				msg, _ = dealer.Recv()
-				var pos Position
-				json.Unmarshal(msg.Frames[0], &pos)
-				fmt.Println(pos.Pos)
-				fmt.Println(pos.Pos[ID])
-
-			}()
-
 			(*loginwindow).Close()
 			(*openwindow).Show()
+
+			for {
+				//fmt.Println("RoomID:", RoomID)
+				if RoomID != "" {
+					msg, err := dealer.Recv()
+					if err != nil {
+						fmt.Println("Error receiving message:", err)
+						break
+					}
+					receivedMessage := strings.ToUpper(string(msg.Frames[0]))
+					if receivedMessage == "GAME START" {
+						fmt.Println("Received message:", string(msg.Frames[0]))
+						msg, _ = dealer.Recv()
+						//var pos Position
+						json.Unmarshal(msg.Frames[0], &pos)
+						myCards = pos.Ma
+						fmt.Println(pos.Pos)
+						fmt.Println(pos.Pos[ID])
+						fmt.Println("My Cards:", myCards.Card)
+					}
+				}
+			}
+
 		} else {
 			fmt.Println("Login failed")
 			received_content.Text = "Login failed"
@@ -119,6 +126,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 		fmt.Println(recv)
 		recv = strings.Split(recv, " ")[0]
 		if recv == "Register" {
+			LoginSuccess = true
 			(*loginwindow).Close()
 			(*openwindow).Show()
 		} else {

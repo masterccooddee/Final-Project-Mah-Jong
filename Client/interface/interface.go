@@ -14,6 +14,24 @@ var LoginSuccess = false
 
 func UI() {
 	go interconnect()
+
+	/* context := context.WithoutCancel(context.Background())
+	go func() {
+		for {
+			if LoginSuccess {
+				dealer = zmq4.NewDealer(context, zmq4.WithID(zmq4.SocketIdentity(ID)))
+				defer dealer.Close()
+
+				err := dealer.Dial("tcp://localhost:7125")
+				if err != nil {
+					fmt.Println("Error connecting dealer:", err)
+					return
+				}
+				break
+			}
+		}
+	}() */
+
 	a := app.New()
 	a.Settings().SetTheme(myCustomTheme())
 
@@ -28,6 +46,26 @@ func UI() {
 
 	x.SetContent(LORinterface(&x, &w))
 	x.Show()
+
+	// DEALER 接收消息
+	/* 	go func() {
+		for {
+			//fmt.Println("RoomID:", RoomID)
+			if RoomID != "" {
+				msg, err := dealer.Recv()
+				if err != nil {
+					fmt.Println("Error receiving message:", err)
+					break
+				}
+				fmt.Println("Received message:", string(msg.Frames[0]))
+				msg, _ = dealer.Recv()
+				var pos Position
+				json.Unmarshal(msg.Frames[0], &pos)
+				fmt.Println(pos.Pos)
+				fmt.Println(pos.Pos[ID])
+			}
+		}
+	}() */
 
 	a.Run()
 

@@ -31,6 +31,7 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 			inroom = true
 			fmt.Println("Make RoomID: " + RoomID + " and join")
 			(*received_content).Text = "Make RoomID: " + RoomID
+			(*received_content).Color = color.Black
 			(*received_content).Refresh()
 			//(*w).Close()
 		} else {
@@ -59,9 +60,11 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 		msg := strings.Split(recv, " ")
 		if msg[0] == "True" {
 			inroom = true
+			msg[2] = strings.TrimSpace(msg[2])
 			RoomID = msg[2]
 			fmt.Println("Join RoomID: " + RoomID)
 			(*received_content).Text = "Successfully Join RoomID: " + RoomID
+			(*received_content).Color = color.Black
 			(*received_content).Refresh()
 			//(*w).Close()
 		} else if msg[0] == "False" {
@@ -97,8 +100,11 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 		fmt.Println(recv)
 		msg := strings.Split(recv, " ")
 		if msg[0] == "True" {
+			fmt.Println("msg[2] " + msg[2])
+			msg[2] = strings.TrimSpace(msg[2])
 			RoomID = msg[2]
 			(*received_content).Text = "Find RoomID: " + msg[2]
+			(*received_content).Color = color.Black
 			(*received_content).Refresh()
 			//(*w).Close()
 		} else {
@@ -144,6 +150,7 @@ func makeBannner_top(received_content **canvas.Text) fyne.CanvasObject {
 	toolbar := widget.NewToolbar()
 	toolbar = widget.NewToolbar(
 		widget.NewToolbarAction(theme.GridIcon(), func() {
+
 			leaveRoomAction := fyne.NewMenuItem("Leave Room", func() {
 				// 傳送 LEAVE 命令給伺服器
 				conn.Write([]byte("ROOM LEAVE"))
@@ -153,6 +160,7 @@ func makeBannner_top(received_content **canvas.Text) fyne.CanvasObject {
 				if msg == "True" {
 					inroom = false
 					(*received_content).Text = "Leave Room " + RoomID
+					(*received_content).Color = color.Black
 					RoomID = ""
 					(*received_content).Refresh()
 					//fmt.Println("Leave Room")

@@ -13,9 +13,13 @@ var inroom bool = false
 
 func makeBanner_bottom_bar() fyne.CanvasObject {
 
-	card := canvas.NewImageFromResource(resourceWordfivePng)
-	card.FillMode = canvas.ImageFillContain
-	return container.NewStack(container.NewPadded(card))
+	for index := range myCards.Card {
+		card := canvas.NewImageFromResource(resourceWordfivePng)
+		card.FillMode = canvas.ImageFillContain
+		return container.NewStack(container.NewPadded(card))
+
+	}
+
 }
 
 func makeGUI() fyne.CanvasObject {
@@ -30,7 +34,13 @@ func makeGUI() fyne.CanvasObject {
 		makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(), makeBanner_bottom_bar(),
 	}
 
-	content := canvas.NewRectangle(color.RGBA{0, 0, 0, 0})
+	content := canvas.NewText("", color.Black)
+	content.TextSize = 12
+
+	/* msg, err = dealer.Recv()
+	fmt.Println("msg:", msg, "err:", err)
+	content.Text = string(msg.Frames[0])
+	content.Refresh() */
 
 	dividers := [5]fyne.CanvasObject{
 		widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(),
