@@ -63,6 +63,33 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 		fmt.Println(recv)
 		recv = strings.Split(recv, " ")[0]
 		if recv == "Welcome" {
+			/* ID = input.Text
+			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
+			defer dealer.Close()
+
+			err := dealer.Dial("tcp://localhost:7125")
+			if err != nil {
+				fmt.Println("Error connecting dealer:", err)
+				return
+			}
+
+			go func() {
+
+				// DEALER 接收消息
+				msg, err = dealer.Recv()
+				if err != nil {
+					fmt.Println("Error receiving message:", err)
+					return
+				}
+				fmt.Println("Received message:", string(msg.Frames[0]))
+				msg, _ = dealer.Recv()
+				var pos Position
+				json.Unmarshal(msg.Frames[0], &pos)
+				fmt.Println(pos.Pos)
+				fmt.Println(pos.Pos[ID])
+
+			}()
+			*/
 			(*loginwindow).Close()
 			(*openwindow).Show()
 		} else {
@@ -110,7 +137,7 @@ func interconnect() {
 	//go serverexit(conn)
 
 	for {
-		fmt.Print("Enter text: ")
+		//fmt.Print("Enter text: ")
 		reader := bufio.NewReader(os.Stdin)
 		text, _ := reader.ReadString('\n')
 		out := strings.Split(text, " ")

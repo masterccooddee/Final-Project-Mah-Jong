@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/go-zeromq/zmq4"
 )
 
 func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
@@ -94,6 +95,7 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 		fmt.Println(recv)
 		msg := strings.Split(recv, " ")
 		if msg[0] == "True" {
+			RoomID = msg[2]
 			(*received_content).Text = "Find RoomID: " + msg[2]
 			(*received_content).Refresh()
 			//(*w).Close()
@@ -112,8 +114,28 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 }
 
 func makeRoomChatInterface() fyne.CanvasObject {
+	input := widget.NewEntry()
+	input.SetPlaceHolder("Enter text...")
+	received_content := canvas.NewText("", color.Black)
+	received_content.TextSize = 12
 
-	return nil
+	//roomchat command
+	roomchat := container.NewVBox(widget.NewButton("Send Message", func() {
+		if RoomID == "" {
+			received_content.Text = "You are not in a room"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+		} else {
+			//roomchat command
+			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(input.Text)))
+		}
+	}))
+
+	form := widget.NewForm(widget.NewFormItem("Message", input))
+
+	content := container.NewVBox(form, roomchat, received_content)
+
+	return content
 }
 
 func makeBannner_top(received_content **canvas.Text) fyne.CanvasObject {
