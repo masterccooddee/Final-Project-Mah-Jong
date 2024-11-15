@@ -122,7 +122,7 @@ func makeRoomChatInterface() fyne.CanvasObject {
 	received_content.TextSize = 12
 
 	//roomchat command
-	roomchat := container.NewVBox(widget.NewButton("Send Message", func() {
+	roomchatbutton := container.NewVBox(widget.NewButton("Send Message", func() {
 		if RoomID == "" {
 			received_content.Text = "You are not in a room"
 			received_content.Color = color.RGBA{255, 0, 0, 255}
@@ -135,7 +135,7 @@ func makeRoomChatInterface() fyne.CanvasObject {
 
 	form := widget.NewForm(widget.NewFormItem("Message", input))
 
-	content := container.NewVBox(form, roomchat, received_content)
+	content := container.NewVBox(form, roomchatbutton, received_content)
 
 	return content
 }

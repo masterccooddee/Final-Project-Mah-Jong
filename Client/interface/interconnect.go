@@ -67,11 +67,39 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 			conn.Write([]byte("LOGIN " + input.Text))
 		}
 
+		ID = input.Text
 		input.SetText("")
 		recv := rrecv()
 		fmt.Println(recv)
 		recv = strings.Split(recv, " ")[0]
 		if recv == "Welcome" {
+
+			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
+			defer dealer.Close()
+
+			err := dealer.Dial("tcp://localhost:7125")
+			if err != nil {
+				fmt.Println("Error connecting dealer:", err)
+				return
+			}
+
+			go func() {
+
+				// DEALER 接收消息
+				msg, err = dealer.Recv()
+				fmt.Println((msg))
+				if err != nil {
+					fmt.Println("Error receiving message:", err)
+					return
+				}
+				fmt.Println("Received message:", string(msg.Frames[0]))
+				msg, _ = dealer.Recv()
+				var pos Position
+				json.Unmarshal(msg.Frames[0], &pos)
+				fmt.Println(pos.Pos)
+				fmt.Println(pos.Pos[ID])
+
+			}()
 
 			(*loginwindow).Close()
 			(*openwindow).Show()
@@ -128,32 +156,7 @@ func interconnect() {
 			out[1] = strings.TrimSpace(out[1])
 			ID = out[1]
 			fmt.Println("LOGIN")
-			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(out[1])))
-			defer dealer.Close()
 
-			err := dealer.Dial("tcp://localhost:7125")
-			if err != nil {
-				fmt.Println("Error connecting dealer:", err)
-				return
-			}
-			fmt.Println(out[1])
-
-			go func() {
-
-				// DEALER 接收消息
-				msg, err = dealer.Recv()
-				if err != nil {
-					fmt.Println("Error receiving message:", err)
-					return
-				}
-				fmt.Println("Received message:", string(msg.Frames[0]))
-				msg, _ = dealer.Recv()
-				var pos Position
-				json.Unmarshal(msg.Frames[0], &pos)
-				fmt.Println(pos.Pos)
-				fmt.Println(pos.Pos[ID])
-
-			}()
 		}
 		if strings.TrimSpace(out[0]) == "CHG" {
 			fmt.Println("RoomID: ", RoomID)
