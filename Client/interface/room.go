@@ -194,7 +194,7 @@ func makeBannner_top(received_content **canvas.Text) fyne.CanvasObject {
 		}),
 	)
 
-	logo1 := canvas.NewImageFromResource(resourceLogo1Png)
+	logo1 := canvas.NewImageFromResource(resource7Png)
 	logo1.FillMode = canvas.ImageFillContain
 
 	return container.NewStack(toolbar, container.NewPadded(logo1))

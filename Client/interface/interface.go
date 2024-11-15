@@ -11,33 +11,20 @@ func ShowError(err error, w fyne.Window) {
 }
 
 var LoginSuccess = false
+var GUI fyne.CanvasObject
 
 func UI() {
 	go interconnect()
 
-	/* context := context.WithoutCancel(context.Background())
-	go func() {
-		for {
-			if LoginSuccess {
-				dealer = zmq4.NewDealer(context, zmq4.WithID(zmq4.SocketIdentity(ID)))
-				defer dealer.Close()
-
-				err := dealer.Dial("tcp://localhost:7125")
-				if err != nil {
-					fmt.Println("Error connecting dealer:", err)
-					return
-				}
-				break
-			}
-		}
-	}() */
-
 	a := app.New()
+	GUI = makeGUI()
+	go updateGUI()
 	a.Settings().SetTheme(myCustomTheme())
 
 	w := a.NewWindow("Mahjong")
 	w.Resize(fyne.NewSize(1024, 600))
-	w.SetContent(makeGUI())
+	w.SetContent(GUI)
+
 	w.CenterOnScreen()
 
 	x := a.NewWindow("Login or Register")

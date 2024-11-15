@@ -127,8 +127,40 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 		recv = strings.Split(recv, " ")[0]
 		if recv == "Register" {
 			LoginSuccess = true
+
+			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
+			defer dealer.Close()
+
+			err := dealer.Dial("tcp://localhost:7125")
+			if err != nil {
+				fmt.Println("Error connecting dealer:", err)
+				return
+			}
+
 			(*loginwindow).Close()
 			(*openwindow).Show()
+
+			for {
+				//fmt.Println("RoomID:", RoomID)
+				if RoomID != "" {
+					msg, err := dealer.Recv()
+					if err != nil {
+						fmt.Println("Error receiving message:", err)
+						break
+					}
+					receivedMessage := strings.ToUpper(string(msg.Frames[0]))
+					if receivedMessage == "GAME START" {
+						fmt.Println("Received message:", string(msg.Frames[0]))
+						msg, _ = dealer.Recv()
+						//var pos Position
+						json.Unmarshal(msg.Frames[0], &pos)
+						myCards = pos.Ma
+						fmt.Println(pos.Pos)
+						fmt.Println(pos.Pos[ID])
+						fmt.Println("My Cards:", myCards.Card)
+					}
+				}
+			}
 		} else {
 			fmt.Println("ID already exist")
 			received_content.Text = "ID already exist"
