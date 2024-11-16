@@ -9,15 +9,16 @@ const sideWidth = 100
 
 type fysionLayout struct {
 	top, top_bar, left_bar, right_bar, content fyne.CanvasObject
-	bottom_bar                                 []fyne.CanvasObject
+	bottom_bar                                 [13]fyne.CanvasObject
 	dividers                                   [5]fyne.CanvasObject
 }
 
-func NewFysionLayout(top, top_bar, left_bar, right_bar, content fyne.CanvasObject, bottom_bar []fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
+func NewFysionLayout(top, top_bar, left_bar, right_bar, content fyne.CanvasObject, bottom_bar [13]fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
 	return &fysionLayout{top: top, top_bar: top_bar, left_bar: left_bar, right_bar: right_bar, bottom_bar: bottom_bar, content: content, dividers: dividers}
 }
 
 func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
+
 	topHeight := l.top.MinSize().Height
 	l.top.Resize(fyne.NewSize(size.Width, topHeight))
 
@@ -29,7 +30,7 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 
 	l.right_bar.Move(fyne.NewPos(size.Width-sideWidth, topHeight))
 	l.right_bar.Resize(fyne.NewSize(sideWidth, size.Height-topHeight))
-	for c := range l.bottom_bar {
+	/* for c := range l.bottom_bar {
 		if c == 0 {
 			l.bottom_bar[0].Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
 			l.bottom_bar[0].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
@@ -37,7 +38,7 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 			l.bottom_bar[c].Move(fyne.NewPos(sideWidth+(size.Width-sideWidth*2)/13*((float32)(c))-(float32(15))*float32(c), size.Height-sideWidth))
 			l.bottom_bar[c].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
 		}
-	}
+	} */
 
 	/* l.bottom_bar[0].Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
 	l.bottom_bar[0].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))

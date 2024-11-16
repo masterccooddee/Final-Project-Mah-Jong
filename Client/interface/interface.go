@@ -11,7 +11,7 @@ func ShowError(err error, w fyne.Window) {
 }
 
 var LoginSuccess = false
-var GUI fyne.CanvasObject
+var GUI *fyne.Container
 
 func UI() {
 	go interconnect()

@@ -120,7 +120,16 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 
 	Send_Register_content := container.NewVBox(widget.NewButton("Register", func() {
 		fmt.Println("Registering:", input.Text)
-		conn.Write([]byte("REG " + input.Text))
+		if input.Text == "" {
+			fmt.Println("Please enter a username")
+			received_content.Text = "Please enter a username"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+			return
+		} else {
+			conn.Write([]byte("REG " + input.Text))
+		}
+		ID = strings.TrimSpace(input.Text)
 		input.SetText("")
 		recv := rrecv()
 		fmt.Println(recv)
