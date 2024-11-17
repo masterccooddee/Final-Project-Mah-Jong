@@ -5,7 +5,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-const sideWidth = 100
+const sideWidth = 80
 
 type fysionLayout struct {
 	top, top_bar, left_bar, right_bar, content fyne.CanvasObject

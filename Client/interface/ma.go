@@ -2,6 +2,7 @@ package ui
 
 import (
 	"math/rand"
+	"sort"
 	"strconv"
 )
 
@@ -62,20 +63,46 @@ func (m *mao) splitCard() {
 
 }
 
-/* func (m *mao) SortCard() {
-	sort.Slice(m.Wan, func(i, j int) bool { return m.Wan[i][1] < m.Wan[j][1] })
-	sort.Slice(m.Tiao, func(i, j int) bool { return m.Tiao[i][1] < m.Tiao[j][1] })
-	sort.Slice(m.Tong, func(i, j int) bool { return m.Tong[i][1] < m.Tong[j][1] })
-	sort.Slice(m.Word, func(i, j int) bool { return m.Word[i] < m.Word[j] })
+func (m *mao) SortCard() {
+	wanKeys := make([]int, 0, len(m.Wan))
+	for k := range m.Wan {
+		wanKeys = append(wanKeys, k)
+	}
+	sort.Ints(wanKeys)
+
+	tiaoKeys := make([]int, 0, len(m.Tiao))
+	for k := range m.Tiao {
+		tiaoKeys = append(tiaoKeys, k)
+	}
+	sort.Ints(tiaoKeys)
+
+	tongKeys := make([]int, 0, len(m.Tong))
+	for k := range m.Tong {
+		tongKeys = append(tongKeys, k)
+	}
+	sort.Ints(tongKeys)
+
+	wordKeys := make([]string, 0, len(m.Word))
+	for k := range m.Word {
+		wordKeys = append(wordKeys, k)
+	}
+	sort.Strings(wordKeys)
+
 	// 清空 Card 切片
 	m.Card = nil
 	// 合併切片
-	m.Card = append(m.Card, m.Wan...)
-	m.Card = append(m.Card, m.Tong...)
-	m.Card = append(m.Card, m.Tiao...)
-	m.Card = append(m.Card, m.Word...)
+	for _, k := range wanKeys {
+		m.Card = append(m.Card, "w"+strconv.Itoa(k))
+	}
+	for _, k := range tiaoKeys {
+		m.Card = append(m.Card, "l"+strconv.Itoa(k))
+	}
+	for _, k := range tongKeys {
+		m.Card = append(m.Card, "t"+strconv.Itoa(k))
+	}
+	m.Card = append(m.Card, wordKeys...)
 
-} */
+}
 
 func (c *mao) removeCard(remove string) {
 	for i, v := range c.Card {

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"fmt"
 	"image/color"
 	"net"
 	"os"
@@ -34,6 +33,7 @@ var conn net.Conn
 var err error
 var RoomID string
 var in string
+var gamestart bool = false
 
 func rrecv() string {
 	data := make([]byte, 4096)
@@ -41,7 +41,7 @@ func rrecv() string {
 	var num int
 	num, _ = conn.Read(data)
 	if num == 0 {
-		fmt.Println("\nConnection closed")
+		//fmt.Println("\nConnection closed")
 		os.Exit(1)
 	}
 
@@ -60,7 +60,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 	Send_Login_content := container.NewVBox(widget.NewButton("Login", func() {
 		//fmt.Println("Logging:", input.Text)
 		if input.Text == "" {
-			fmt.Println("Please enter a username")
+			//fmt.Println("Please enter a username")
 			received_content.Text = "Please enter a username"
 			received_content.Color = color.RGBA{255, 0, 0, 255}
 			received_content.Refresh()
@@ -72,7 +72,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 		ID = strings.TrimSpace(input.Text)
 		input.SetText("")
 		recv := rrecv()
-		fmt.Println(recv)
+		//fmt.Println(recv)
 		recv = strings.Split(recv, " ")[0]
 		if recv == "Welcome" {
 			LoginSuccess = true
@@ -81,7 +81,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 
 			err := dealer.Dial("tcp://localhost:7125")
 			if err != nil {
-				fmt.Println("Error connecting dealer:", err)
+				//fmt.Println("Error connecting dealer:", err)
 				return
 			}
 
@@ -93,25 +93,26 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 				if RoomID != "" {
 					msg, err := dealer.Recv()
 					if err != nil {
-						fmt.Println("Error receiving message:", err)
+						//fmt.Println("Error receiving message:", err)
 						break
 					}
 					receivedMessage := strings.ToUpper(string(msg.Frames[0]))
 					if receivedMessage == "GAME START" {
-						fmt.Println("Received message:", string(msg.Frames[0]))
+						gamestart = true
+						//fmt.Println("Received message:", string(msg.Frames[0]))
 						msg, _ = dealer.Recv()
 						//var pos Position
 						json.Unmarshal(msg.Frames[0], &pos)
 						myCards = pos.Ma
-						fmt.Println(pos.Pos)
-						fmt.Println(pos.Pos[ID])
-						fmt.Println("My Cards:", myCards.Card)
+						//fmt.Println(pos.Pos)
+						//fmt.Println(pos.Pos[ID])
+						//fmt.Println("My Cards:", myCards.Card)
 					}
 				}
 			}
 
 		} else {
-			fmt.Println("Login failed")
+			//fmt.Println("Login failed")
 			received_content.Text = "Login failed"
 			received_content.Color = color.RGBA{255, 0, 0, 255}
 			received_content.Refresh()
@@ -119,9 +120,9 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 	}))
 
 	Send_Register_content := container.NewVBox(widget.NewButton("Register", func() {
-		fmt.Println("Registering:", input.Text)
+		//fmt.Println("Registering:", input.Text)
 		if input.Text == "" {
-			fmt.Println("Please enter a username")
+			//fmt.Println("Please enter a username")
 			received_content.Text = "Please enter a username"
 			received_content.Color = color.RGBA{255, 0, 0, 255}
 			received_content.Refresh()
@@ -132,7 +133,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 		ID = strings.TrimSpace(input.Text)
 		input.SetText("")
 		recv := rrecv()
-		fmt.Println(recv)
+		//fmt.Println(recv)
 		recv = strings.Split(recv, " ")[0]
 		if recv == "Register" {
 			LoginSuccess = true
@@ -142,7 +143,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 
 			err := dealer.Dial("tcp://localhost:7125")
 			if err != nil {
-				fmt.Println("Error connecting dealer:", err)
+				//fmt.Println("Error connecting dealer:", err)
 				return
 			}
 
@@ -154,24 +155,24 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 				if RoomID != "" {
 					msg, err := dealer.Recv()
 					if err != nil {
-						fmt.Println("Error receiving message:", err)
+						//fmt.Println("Error receiving message:", err)
 						break
 					}
 					receivedMessage := strings.ToUpper(string(msg.Frames[0]))
 					if receivedMessage == "GAME START" {
-						fmt.Println("Received message:", string(msg.Frames[0]))
+						//fmt.Println("Received message:", string(msg.Frames[0]))
 						msg, _ = dealer.Recv()
 						//var pos Position
 						json.Unmarshal(msg.Frames[0], &pos)
 						myCards = pos.Ma
-						fmt.Println(pos.Pos)
-						fmt.Println(pos.Pos[ID])
-						fmt.Println("My Cards:", myCards.Card)
+						//fmt.Println(pos.Pos)
+						//fmt.Println(pos.Pos[ID])
+						//fmt.Println("My Cards:", myCards.Card)
 					}
 				}
 			}
 		} else {
-			fmt.Println("ID already exist")
+			//fmt.Println("ID already exist")
 			received_content.Text = "ID already exist"
 			received_content.Color = color.RGBA{255, 0, 0, 255}
 			received_content.Refresh()
@@ -190,7 +191,7 @@ func interconnect() {
 	defer conn.Close()
 
 	if err != nil {
-		fmt.Println("Error dialing", err)
+		//fmt.Println("Error dialing", err)
 		return
 	}
 
@@ -204,13 +205,13 @@ func interconnect() {
 		if out[0] == "LOGIN" {
 			out[1] = strings.TrimSpace(out[1])
 			ID = out[1]
-			fmt.Println("LOGIN")
+			//fmt.Println("LOGIN")
 
 		}
 		if strings.TrimSpace(out[0]) == "CHG" {
-			fmt.Println("RoomID: ", RoomID)
+			//fmt.Println("RoomID: ", RoomID)
 			for {
-				fmt.Print("Enter text2: ")
+				//fmt.Print("Enter text2: ")
 				reader := bufio.NewReader(os.Stdin)
 				text, _ := reader.ReadString('\n')
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(text)))

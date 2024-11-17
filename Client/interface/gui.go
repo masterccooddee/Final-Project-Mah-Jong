@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"image/color"
 	"time"
 
@@ -50,6 +49,33 @@ var static_name = map[string]*fyne.StaticResource{
 }
 var bottom_bar [13]fyne.CanvasObject
 
+type TappableCard struct {
+	widget.Icon
+}
+
+func NewTappableCard(res fyne.Resource) *TappableCard {
+	icon := &TappableCard{}
+	icon.ExtendBaseWidget(icon)
+	icon.SetResource(res)
+	return icon
+}
+
+var tapped bool = false
+
+func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
+	//fmt.Println("Tapped")
+	//if !tapped {
+	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+	//} else {
+	//	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+10))
+	//}
+}
+
+func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
+	//fmt.Println("TappedSecondary")
+	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
+}
+
 func makeBanner_bottom_bar() [13]fyne.CanvasObject {
 	// myCards.addCard()
 	// myCards.Card = myCards.Card[:13]
@@ -57,17 +83,19 @@ func makeBanner_bottom_bar() [13]fyne.CanvasObject {
 	cardslice := [13]fyne.CanvasObject{}
 	if myCards.Card == nil {
 		for i := 0; i < 13; i++ {
-			cc := canvas.NewImageFromResource(resource5Png)
-			cc.FillMode = canvas.ImageFillContain
+			cc := canvas.NewRectangle(color.White)
+			//cc := canvas.NewImageFromResource(resourceBackPng)
+			//cc.FillMode = canvas.ImageFillStretch
 			cardslice[i] = cc
 		}
 		return cardslice
 	} else {
-		fmt.Println("myCards.Card:", myCards.Card)
+		//myCards.SortCard()
+		//fmt.Println("myCards.Card:", myCards.Card)
 		for i, card := range myCards.Card {
 			if _, ok := static_name[card]; ok {
-				cc := canvas.NewImageFromResource(static_name[card])
-				cc.FillMode = canvas.ImageFillStretch
+				cc := NewTappableCard(static_name[card])
+				//cc.FillMode = canvas.ImageFillContain
 				cardslice[i] = cc
 			}
 		}
