@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"image/color"
 	"strings"
 
@@ -20,16 +19,16 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 	(*received_content).TextSize = 12
 	//roommake command
 	roommake := container.NewVBox(widget.NewButton("Make New Room", func() {
-		fmt.Println("Make New Room")
+		//fmt.Println("Make New Room")
 		conn.Write([]byte("ROOM MAKE"))
 		input.SetText("")
 		recv := rrecv()
-		fmt.Println(recv)
+		//fmt.Println(recv)
 		msg := strings.Split(recv, " ")
 		if msg[0] == "True" {
 			RoomID = msg[2]
 			inroom = true
-			fmt.Println("Make RoomID: " + RoomID + " and join")
+			//fmt.Println("Make RoomID: " + RoomID + " and join")
 			(*received_content).Text = "Make RoomID: " + RoomID
 			(*received_content).Color = color.Black
 			(*received_content).Refresh()
@@ -56,36 +55,36 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 
 		input.SetText("")
 		recv := rrecv()
-		fmt.Println(recv)
+		//fmt.Println(recv)
 		msg := strings.Split(recv, " ")
 		if msg[0] == "True" {
 			inroom = true
 			msg[2] = strings.TrimSpace(msg[2])
 			RoomID = msg[2]
-			fmt.Println("Join RoomID: " + RoomID)
+			//fmt.Println("Join RoomID: " + RoomID)
 			(*received_content).Text = "Successfully Join RoomID: " + RoomID
 			(*received_content).Color = color.Black
 			(*received_content).Refresh()
 			//(*w).Close()
 		} else if msg[0] == "False" {
 			if msg[1] == "command" {
-				fmt.Println("False Command")
+				//fmt.Println("False Command")
 				(*received_content).Text = "False Command"
 				(*received_content).Color = color.RGBA{255, 0, 0, 255}
 				(*received_content).Refresh()
 			} else if msg[3] == "full" {
-				fmt.Println("Room is full")
+				//fmt.Println("Room is full")
 				(*received_content).Text = "Room is full"
 				(*received_content).Color = color.RGBA{255, 0, 0, 255}
 				(*received_content).Refresh()
 			} else {
-				fmt.Println("Room not exist")
+				//fmt.Println("Room not exist")
 				(*received_content).Text = "Room not exist"
 				(*received_content).Color = color.RGBA{255, 0, 0, 255}
 				(*received_content).Refresh()
 			}
 		} else {
-			fmt.Println("You are already in a room")
+			//fmt.Println("You are already in a room")
 			(*received_content).Text = "You are already in a room"
 			(*received_content).Color = color.RGBA{255, 0, 0, 255}
 			(*received_content).Refresh()
@@ -94,13 +93,13 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 
 	//roomFind command
 	roomfind := container.NewVBox(widget.NewButton("Find Room", func() {
-		fmt.Println("Find Room")
+		//fmt.Println("Find Room")
 		conn.Write([]byte("ROOM FIND"))
 		recv := rrecv()
-		fmt.Println(recv)
+		//fmt.Println(recv)
 		msg := strings.Split(recv, " ")
 		if msg[0] == "True" {
-			fmt.Println("msg[2] " + msg[2])
+			//fmt.Println("msg[2] " + msg[2])
 			msg[2] = strings.TrimSpace(msg[2])
 			RoomID = msg[2]
 			(*received_content).Text = "Find RoomID: " + msg[2]
@@ -108,7 +107,7 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 			(*received_content).Refresh()
 			//(*w).Close()
 		} else {
-			fmt.Println("You are already in a room")
+			//fmt.Println("You are already in a room")
 			(*received_content).Text = "You are already in a room"
 			(*received_content).Color = color.RGBA{255, 0, 0, 255}
 			(*received_content).Refresh()
@@ -155,7 +154,7 @@ func makeBannner_top(received_content **canvas.Text) fyne.CanvasObject {
 				// 傳送 LEAVE 命令給伺服器
 				conn.Write([]byte("ROOM LEAVE"))
 				recv := rrecv()
-				fmt.Println(recv)
+				//fmt.Println(recv)
 				msg := strings.Split(recv, " ")[0]
 				if msg == "True" {
 					inroom = false

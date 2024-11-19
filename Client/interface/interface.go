@@ -11,7 +11,7 @@ func ShowError(err error, w fyne.Window) {
 }
 
 var LoginSuccess = false
-var GUI fyne.CanvasObject
+var GUI *fyne.Container
 
 func UI() {
 	go interconnect()
@@ -33,26 +33,7 @@ func UI() {
 
 	x.SetContent(LORinterface(&x, &w))
 	x.Show()
-
-	// DEALER 接收消息
-	/* 	go func() {
-		for {
-			//fmt.Println("RoomID:", RoomID)
-			if RoomID != "" {
-				msg, err := dealer.Recv()
-				if err != nil {
-					fmt.Println("Error receiving message:", err)
-					break
-				}
-				fmt.Println("Received message:", string(msg.Frames[0]))
-				msg, _ = dealer.Recv()
-				var pos Position
-				json.Unmarshal(msg.Frames[0], &pos)
-				fmt.Println(pos.Pos)
-				fmt.Println(pos.Pos[ID])
-			}
-		}
-	}() */
+	w.FixedSize()
 
 	a.Run()
 
