@@ -45,7 +45,11 @@ func (r *Room) Addplayer(player player_in) {
 
 func makeRoom(room_id int, private bool) {
 
-	room := &(Room{Room_ID: room_id, private: private, round: 1, wind: 0})
+	room := new(Room)
+	room.Room_ID = room_id
+	room.private = private
+	room.round = 1
+	room.wind = 0
 	roomlist[room_id] = room
 	RROM := roomlist[room_id]
 	RROM.recvchan = make(chan string, 2)

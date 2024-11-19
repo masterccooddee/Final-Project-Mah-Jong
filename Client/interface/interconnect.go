@@ -300,7 +300,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 }
 
 func interconnect() {
-	conn, err = net.Dial("tcp", "localhost:8080")
+	conn, err = net.Dial("tcp", ":8080")
 	defer conn.Close()
 
 	if err != nil {

@@ -207,6 +207,12 @@ func (p *Player) HasCard(cardkind string, cardValue int) bool {
 
 }
 
+func makeFromSlice(sl []string) []string {
+	result := make([]string, len(sl))
+	copy(result, sl)
+	return result
+}
+
 func (r *Room) startgame(ctx context.Context) {
 
 	select {
@@ -246,6 +252,7 @@ func (r *Room) startgame(ctx context.Context) {
 			p.Position = i
 			position[p.ID] = p.Position
 			p.Ma.Card = r.Cardset.Card[:13]
+			//log.Println(p.Ma.Card)
 			r.Cardset.Card = r.Cardset.Card[13:]
 			p.Ma.splitCard()
 
@@ -269,11 +276,12 @@ func (r *Room) startgame(ctx context.Context) {
 		for r.round < 5 { //到東4局結束
 
 			for r.lastcard > 0 { //直到剩0張牌
-
 				//發一張牌
 				if !hPong && !hChi {
 					if !hGang {
-						r.Players[now].Ma.Card = append(r.Players[now].Ma.Card, r.Cardset.Card[0])
+						//newcard = r.Cardset.Card[0]
+						newcardset := append(makeFromSlice(r.Players[now].Ma.Card), r.Cardset.Card[0])
+						r.Players[now].Ma.Card = newcardset
 						r.Cardset.Card = r.Cardset.Card[1:]
 
 					} else { //槓拿嶺上牌
