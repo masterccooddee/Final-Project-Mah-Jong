@@ -211,7 +211,7 @@ func hasAnko(hand Hand) bool {
 	}
 } */
 
-func main() {
+func mmm() {
 	hand := Hand{
 		Tiles: []Tile{
 			{Suit: "萬", Value: 1},

@@ -263,6 +263,8 @@ func zmqrecv() {
 		ROOMID := strings.TrimSpace(string(msg.Frames[1]))
 		msgout := strings.TrimSpace(string(msg.Frames[2]))
 
+		msgout2 := player_name + " " + msgout
+
 		roomID, err := strconv.Atoi(ROOMID)
 		if err != nil {
 			log.Println("Error converting ROOMID to int:", err)
@@ -273,7 +275,7 @@ func zmqrecv() {
 		msglog := fmt.Sprintf("Room [yellow]%d[reset]: [#FFA500]%s[reset] -> %s", roomID, player_name, msgout)
 		zmqloger.Println(msglog)
 
-		room.recvchan <- msgout
+		room.recvchan <- msgout2
 
 	}
 }

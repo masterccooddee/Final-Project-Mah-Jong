@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand/v2"
 	"sort"
@@ -110,6 +111,16 @@ func canGang(player *Player, card string) bool {
 		}
 	}
 	return count == 3
+}
+
+func canGangself(player *Player, card string) bool {
+	count := 0
+	for _, c := range player.Ma.Card {
+		if c == card {
+			count++
+		}
+	}
+	return count == 4
 }
 
 func canChi(player *Player, card string) (combinations []string) {
@@ -283,15 +294,17 @@ func (r *Room) startgame(ctx context.Context) {
 					}
 
 					//有沒有辦法胡牌、槓牌
-					if canGang(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) || r.Players[now].HasPong(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {
+					if canGangself(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) || r.Players[now].HasPong(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {
 						//槓牌
 						sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
 
 						getcard := strings.TrimSpace(<-r.recvchan)
 						getslice := strings.Split(getcard, " ")
+						fmt.Fprintln(textView, getcard)
 						for r.Players[now].ID != getslice[0] {
 							getcard = strings.TrimSpace(<-r.recvchan)
 							getslice = strings.Split(getcard, " ")
+							log.Println(getslice[0], getslice[1])
 						}
 						getcard = getslice[1]
 						if getcard == "Gang" {
@@ -319,7 +332,15 @@ func (r *Room) startgame(ctx context.Context) {
 				}
 				//接收玩家出的牌
 				outcard := strings.TrimSpace(<-r.recvchan)
+				outcardslice := strings.Split(outcard, " ")
+				for r.Players[now].ID != outcardslice[0] {
+					outcard = strings.TrimSpace(<-r.recvchan)
+					outcardslice = strings.Split(outcard, " ")
+				}
+				outcard = outcardslice[1]
 				log.Println("Player", r.Players[now].ID, "discard", outcard)
+				showcardmsg := strconv.Itoa(now) + " " + outcard
+				r.sendtoall(showcardmsg)
 				hChi = false
 				hPong = false
 				r.Players[now].Ma.removeCard(outcard)
