@@ -9,7 +9,6 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/widget"
 	"github.com/go-zeromq/zmq4"
@@ -81,14 +80,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 	case "DRAW":
 		fmt.Println("Not your turn")
 		return
-	case "PONG":
-		dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to pong %s?", mingcard[1]), func(confirm bool) {
-			if confirm {
-				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("PONG"), []byte(mingcard[1])))
-				return
-			}
-			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("CANCEL")))
-		}, fyne.CurrentApp().Driver().AllWindows()[0])
+
 	default:
 		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
 		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
@@ -106,7 +98,8 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
 func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
 	//fmt.Println("TappedSecondary")
-	//i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
+	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+	tapped = !tapped
 }
 
 func makeBanner_bottom_bar() [14]fyne.CanvasObject {
