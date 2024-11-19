@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"math/rand/v2"
 	"sort"
@@ -300,11 +299,9 @@ func (r *Room) startgame(ctx context.Context) {
 
 						getcard := strings.TrimSpace(<-r.recvchan)
 						getslice := strings.Split(getcard, " ")
-						fmt.Fprintln(textView, getcard)
 						for r.Players[now].ID != getslice[0] {
 							getcard = strings.TrimSpace(<-r.recvchan)
 							getslice = strings.Split(getcard, " ")
-							log.Println(getslice[0], getslice[1])
 						}
 						getcard = getslice[1]
 						if getcard == "Gang" {
@@ -354,6 +351,13 @@ func (r *Room) startgame(ctx context.Context) {
 				for i := 0; i < (cnt); i++ {
 					//接收玩家鳴牌
 					getcard := strings.TrimSpace(<-r.recvchan)
+					getcardslice := strings.Split(getcard, " ")
+					getcard = getcardslice[1] + " " + getcardslice[2] + " " + getcardslice[3]
+
+					if getcard == "Cancel" {
+						continue
+					}
+
 					ming = append(ming, getcard)
 					cnt--
 					if cnt == 0 {
@@ -388,6 +392,7 @@ func (r *Room) startgame(ctx context.Context) {
 					}
 				}
 				//格式： 動作 位置 牌 ex: Pong 1 w1, Chi 1 0 (0是種類)
+				//回傳： 動作 牌 playerID  ex: Pong w1 hehehe, Chi 0 hehehe (0是種類)
 				if ming != nil {
 
 					sort.Slice(ming, func(i, j int) bool {
