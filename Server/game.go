@@ -165,6 +165,18 @@ func (p *Player) HasPong(card string) bool {
 	return exist
 }
 
+func (p *Player) HasChi(card string) bool {
+	// 判斷是否有吃過該牌
+	_, exist := p.Chi[card]
+	return exist
+}
+
+func (p *Player) HasGang(card string) bool {
+	// 判斷是否有槓過該牌
+	_, exist := p.Gang[card]
+	return exist
+}
+
 func (p *Player) HasCard(cardkind string, cardValue int) bool {
 	// 判斷是否有該牌
 
@@ -276,6 +288,12 @@ func (r *Room) startgame(ctx context.Context) {
 						sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
 
 						getcard := strings.TrimSpace(<-r.recvchan)
+						getslice := strings.Split(getcard, " ")
+						for r.Players[now].ID != getslice[0] {
+							getcard = strings.TrimSpace(<-r.recvchan)
+							getslice = strings.Split(getcard, " ")
+						}
+						getcard = getslice[1]
 						if getcard == "Gang" {
 							//槓牌
 							if canGang(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {

@@ -3,6 +3,7 @@ package ui
 import (
 	"math/rand"
 	"sort"
+	"sort"
 	"strconv"
 )
 
@@ -94,6 +95,7 @@ func (m *mao) SortCard() {
 	m.Card = append(m.Card, tiao...)
 	m.Card = append(m.Card, word...)
 
+}
 }
 
 func (c *mao) removeCard(remove string) {
