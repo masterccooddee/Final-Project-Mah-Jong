@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"math/rand/v2"
 	"sort"
@@ -300,11 +299,9 @@ func (r *Room) startgame(ctx context.Context) {
 
 						getcard := strings.TrimSpace(<-r.recvchan)
 						getslice := strings.Split(getcard, " ")
-						fmt.Fprintln(textView, getcard)
 						for r.Players[now].ID != getslice[0] {
 							getcard = strings.TrimSpace(<-r.recvchan)
 							getslice = strings.Split(getcard, " ")
-							log.Println(getslice[0], getslice[1])
 						}
 						getcard = getslice[1]
 						if getcard == "Gang" {
