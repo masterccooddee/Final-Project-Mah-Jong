@@ -9,11 +9,11 @@ const sideWidth = 80
 
 type fysionLayout struct {
 	top, top_bar, left_bar, right_bar, content fyne.CanvasObject
-	bottom_bar                                 [13]fyne.CanvasObject
+	bottom_bar                                 [14]fyne.CanvasObject
 	dividers                                   [5]fyne.CanvasObject
 }
 
-func NewFysionLayout(top, top_bar, left_bar, right_bar, content fyne.CanvasObject, bottom_bar [13]fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
+func NewFysionLayout(top, top_bar, left_bar, right_bar, content fyne.CanvasObject, bottom_bar [14]fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
 	return &fysionLayout{top: top, top_bar: top_bar, left_bar: left_bar, right_bar: right_bar, bottom_bar: bottom_bar, content: content, dividers: dividers}
 }
 

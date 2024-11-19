@@ -36,6 +36,7 @@ var conn net.Conn
 var msg zmq4.Msg
 var err error
 
+var receivedMessage string
 var RoomID string
 var in string
 var gamestart bool = false
@@ -101,7 +102,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 						//fmt.Println("Error receiving message:", err)
 						break
 					}
-					receivedMessage := strings.ToUpper(string(msg.Frames[0]))
+					receivedMessage = strings.ToUpper(string(msg.Frames[0]))
 					if receivedMessage == "GAME START" {
 						//fmt.Println("Received message:", string(msg.Frames[0]))
 						msg, _ = dealer.Recv()

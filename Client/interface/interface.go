@@ -17,12 +17,13 @@ func UI() {
 	go interconnect()
 
 	a := app.New()
-	GUI = makeGUI()
-	go updateGUI()
 	a.Settings().SetTheme(myCustomTheme())
 
 	w := a.NewWindow("Mahjong")
 	w.Resize(fyne.NewSize(1024, 600))
+
+	GUI = makeGUI()
+	go updateGUI()
 	w.SetContent(GUI)
 
 	w.CenterOnScreen()
