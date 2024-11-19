@@ -63,7 +63,7 @@ func main() {
 	// 	goto start
 	// }
 
-	conn, err := net.Dial("tcp", ":8080")
+	conn, err := net.Dial("tcp", "172.18.145.51:8080")
 	defer conn.Close()
 
 	if err != nil {
@@ -84,7 +84,7 @@ func main() {
 			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(out[1])))
 			defer dealer.Close()
 
-			err := dealer.Dial("tcp://localhost:7125")
+			err := dealer.Dial("tcp://172.18.145.51:7125")
 			if err != nil {
 				fmt.Println("Error connecting dealer:", err)
 				return

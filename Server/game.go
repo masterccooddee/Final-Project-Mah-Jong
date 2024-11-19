@@ -165,6 +165,18 @@ func (p *Player) HasPong(card string) bool {
 	return exist
 }
 
+func (p *Player) HasChi(card string) bool {
+	// 判斷是否有吃過該牌
+	_, exist := p.Chi[card]
+	return exist
+}
+
+func (p *Player) HasGang(card string) bool {
+	// 判斷是否有槓過該牌
+	_, exist := p.Gang[card]
+	return exist
+}
+
 func (p *Player) HasCard(cardkind string, cardValue int) bool {
 	// 判斷是否有該牌
 
