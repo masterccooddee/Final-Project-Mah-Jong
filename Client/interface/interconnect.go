@@ -1,0 +1,222 @@
+package ui
+
+import (
+	"bufio"
+	"context"
+	"encoding/json"
+	"image/color"
+	"net"
+	"os"
+	"strings"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
+	"github.com/go-zeromq/zmq4"
+)
+
+type Position struct {
+	Pos map[string]int
+	Ma  mao
+}
+
+var myCards mao
+
+// for roomchat
+var pos Position
+var dealer zmq4.Socket
+var ID string
+
+// for room
+var conn net.Conn
+var err error
+var RoomID string
+var in string
+var gamestart bool = false
+
+func rrecv() string {
+	data := make([]byte, 4096)
+
+	var num int
+	num, _ = conn.Read(data)
+	if num == 0 {
+		//fmt.Println("\nConnection closed")
+		os.Exit(1)
+	}
+
+	in2 := string(data[:num])
+	in = strings.TrimSpace(in2)
+	return in
+
+}
+
+func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.CanvasObject {
+	input := widget.NewEntry()
+	input.SetPlaceHolder("Enter text...")
+	received_content := canvas.NewText("", color.Black)
+	received_content.TextSize = 12
+
+	Send_Login_content := container.NewVBox(widget.NewButton("Login", func() {
+		//fmt.Println("Logging:", input.Text)
+		if input.Text == "" {
+			//fmt.Println("Please enter a username")
+			received_content.Text = "Please enter a username"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+			return
+		} else {
+			conn.Write([]byte("LOGIN " + input.Text))
+		}
+
+		ID = strings.TrimSpace(input.Text)
+		input.SetText("")
+		recv := rrecv()
+		//fmt.Println(recv)
+		recv = strings.Split(recv, " ")[0]
+		if recv == "Welcome" {
+			LoginSuccess = true
+			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
+			defer dealer.Close()
+
+			err := dealer.Dial("tcp://localhost:7125")
+			if err != nil {
+				//fmt.Println("Error connecting dealer:", err)
+				return
+			}
+
+			(*loginwindow).Close()
+			(*openwindow).Show()
+
+			for {
+				//fmt.Println("RoomID:", RoomID)
+				if RoomID != "" {
+					msg, err := dealer.Recv()
+					if err != nil {
+						//fmt.Println("Error receiving message:", err)
+						break
+					}
+					receivedMessage := strings.ToUpper(string(msg.Frames[0]))
+					if receivedMessage == "GAME START" {
+						gamestart = true
+						//fmt.Println("Received message:", string(msg.Frames[0]))
+						msg, _ = dealer.Recv()
+						//var pos Position
+						json.Unmarshal(msg.Frames[0], &pos)
+						myCards = pos.Ma
+						//fmt.Println(pos.Pos)
+						//fmt.Println(pos.Pos[ID])
+						//fmt.Println("My Cards:", myCards.Card)
+					}
+				}
+			}
+
+		} else {
+			//fmt.Println("Login failed")
+			received_content.Text = "Login failed"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+		}
+	}))
+
+	Send_Register_content := container.NewVBox(widget.NewButton("Register", func() {
+		//fmt.Println("Registering:", input.Text)
+		if input.Text == "" {
+			//fmt.Println("Please enter a username")
+			received_content.Text = "Please enter a username"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+			return
+		} else {
+			conn.Write([]byte("REG " + input.Text))
+		}
+		ID = strings.TrimSpace(input.Text)
+		input.SetText("")
+		recv := rrecv()
+		//fmt.Println(recv)
+		recv = strings.Split(recv, " ")[0]
+		if recv == "Register" {
+			LoginSuccess = true
+
+			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
+			defer dealer.Close()
+
+			err := dealer.Dial("tcp://localhost:7125")
+			if err != nil {
+				//fmt.Println("Error connecting dealer:", err)
+				return
+			}
+
+			(*loginwindow).Close()
+			(*openwindow).Show()
+
+			for {
+				//fmt.Println("RoomID:", RoomID)
+				if RoomID != "" {
+					msg, err := dealer.Recv()
+					if err != nil {
+						//fmt.Println("Error receiving message:", err)
+						break
+					}
+					receivedMessage := strings.ToUpper(string(msg.Frames[0]))
+					if receivedMessage == "GAME START" {
+						//fmt.Println("Received message:", string(msg.Frames[0]))
+						msg, _ = dealer.Recv()
+						//var pos Position
+						json.Unmarshal(msg.Frames[0], &pos)
+						myCards = pos.Ma
+						//fmt.Println(pos.Pos)
+						//fmt.Println(pos.Pos[ID])
+						//fmt.Println("My Cards:", myCards.Card)
+					}
+				}
+			}
+		} else {
+			//fmt.Println("ID already exist")
+			received_content.Text = "ID already exist"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+		}
+	}))
+
+	form := widget.NewForm(widget.NewFormItem("Username", input))
+
+	content := container.NewVBox(form, Send_Login_content, Send_Register_content, received_content)
+
+	return content
+}
+
+func interconnect() {
+	conn, err = net.Dial("tcp", "localhost:8080")
+	defer conn.Close()
+
+	if err != nil {
+		//fmt.Println("Error dialing", err)
+		return
+	}
+
+	//go serverexit(conn)
+
+	for {
+		//fmt.Print("Enter text: ")
+		reader := bufio.NewReader(os.Stdin)
+		text, _ := reader.ReadString('\n')
+		out := strings.Split(text, " ")
+		if out[0] == "LOGIN" {
+			out[1] = strings.TrimSpace(out[1])
+			ID = out[1]
+			//fmt.Println("LOGIN")
+
+		}
+		if strings.TrimSpace(out[0]) == "CHG" {
+			//fmt.Println("RoomID: ", RoomID)
+			for {
+				//fmt.Print("Enter text2: ")
+				reader := bufio.NewReader(os.Stdin)
+				text, _ := reader.ReadString('\n')
+				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(text)))
+			}
+		}
+
+	}
+}

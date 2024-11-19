@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 )
 
@@ -139,7 +140,12 @@ func removeTiles(tiles, toRemove []Tile) []Tile {
 }
 
 // ************************************************飜數判定************************************************
-func calculateHan(hand Hand) ([]Yaku, int) {
+//1番：reach(立直) fully_conceal(門清) unbroken(一發) all_inside(斷么九) pinfu(平和) twin_seq(一盃口) honor(場風/自風/中發白)
+//2番：double_reach(天聽) seven_pair(七對子) full_straight(一氣通貫) mixed_seq(三色同順)
+//3番：
+//6番：
+//役滿：
+/* func calculateHan(hand Hand) ([]Yaku, int) {
 	yakuList := []Yaku{}
 
 	// 舉例：檢查平和（門清門前和牌無加符）
@@ -164,6 +170,8 @@ func isPinfu(hand Hand) bool {
 	return true // 替換為實際邏輯
 }
 
+func is
+
 // ************************************************符數判定************************************************
 func calculateFu(hand Hand) int {
 	fu := 20 // 胡牌基礎符數為 20 符
@@ -180,10 +188,10 @@ func calculateFu(hand Hand) int {
 // 示例：判斷是否有暗刻
 func hasAnko(hand Hand) bool {
 	return false // 替換為實際邏輯
-}
+} */
 
 // ************************************************判定結果************************************************
-func calculateHandResult(hand Hand) HandResult {
+/* func calculateHandResult(hand Hand) HandResult {
 	isWinning := isWinningHand(hand)
 
 	if !isWinning {
@@ -200,5 +208,32 @@ func calculateHandResult(hand Hand) HandResult {
 		Han:       han,
 		Fu:        fu,
 		IsWinning: true,
+	}
+} */
+
+func main() {
+	hand := Hand{
+		Tiles: []Tile{
+			{Suit: "萬", Value: 1},
+			{Suit: "萬", Value: 1},
+			{Suit: "萬", Value: 2},
+			{Suit: "萬", Value: 2},
+			{Suit: "萬", Value: 3},
+			{Suit: "萬", Value: 3},
+			{Suit: "萬", Value: 4},
+			{Suit: "萬", Value: 4},
+			{Suit: "萬", Value: 5},
+			{Suit: "萬", Value: 5}, // 中
+			{Suit: "字", Value: 5}, // 中
+			{Suit: "字", Value: 5}, // 中
+			{Suit: "筒", Value: 2},
+			{Suit: "筒", Value: 2},
+		},
+	}
+
+	if isWinningHand(hand) {
+		fmt.Println("這是一手可以胡的牌")
+	} else {
+		fmt.Println("這手牌不能胡")
 	}
 }

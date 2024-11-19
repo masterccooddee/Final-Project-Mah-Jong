@@ -1,22 +1,24 @@
-package main
+package ui
 
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
 )
 
-const sideWidth = 100
+const sideWidth = 80
 
 type fysionLayout struct {
-	top, top_bar, left_bar, right_bar, bottom_bar, content fyne.CanvasObject
-	dividers                                               [5]fyne.CanvasObject
+	top, top_bar, left_bar, right_bar, content fyne.CanvasObject
+	bottom_bar                                 [13]fyne.CanvasObject
+	dividers                                   [5]fyne.CanvasObject
 }
 
-func NewFysionLayout(top, top_bar, left_bar, right_bar, bottom_bar, content fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
+func NewFysionLayout(top, top_bar, left_bar, right_bar, content fyne.CanvasObject, bottom_bar [13]fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
 	return &fysionLayout{top: top, top_bar: top_bar, left_bar: left_bar, right_bar: right_bar, bottom_bar: bottom_bar, content: content, dividers: dividers}
 }
 
 func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
+
 	topHeight := l.top.MinSize().Height
 	l.top.Resize(fyne.NewSize(size.Width, topHeight))
 
@@ -28,12 +30,24 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 
 	l.right_bar.Move(fyne.NewPos(size.Width-sideWidth, topHeight))
 	l.right_bar.Resize(fyne.NewSize(sideWidth, size.Height-topHeight))
+	/* for c := range l.bottom_bar {
+		if c == 0 {
+			l.bottom_bar[0].Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
+			l.bottom_bar[0].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
+		} else {
+			l.bottom_bar[c].Move(fyne.NewPos(sideWidth+(size.Width-sideWidth*2)/13*((float32)(c))-(float32(15))*float32(c), size.Height-sideWidth))
+			l.bottom_bar[c].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
+		}
+	} */
 
-	l.bottom_bar.Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
-	l.bottom_bar.Resize(fyne.NewSize(size.Width-sideWidth*2, sideWidth))
+	/* l.bottom_bar[0].Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
+	l.bottom_bar[0].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
 
-	l.content.Move(fyne.NewPos(sideWidth, topHeight+sideWidth))
-	l.content.Resize(fyne.NewSize(size.Width-sideWidth*2, size.Height-topHeight-sideWidth*2))
+	l.bottom_bar[1].Move(fyne.NewPos(sideWidth+(size.Width-sideWidth*2)/13, size.Height-sideWidth))
+	l.bottom_bar[1].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth)) */
+
+	l.content.Move(fyne.NewPos(size.Width/3+sideWidth/3, topHeight+sideWidth))
+	l.content.Resize(fyne.NewSize((size.Width-sideWidth*2)/3, size.Height-topHeight-sideWidth*2))
 
 	dividerThickness := theme.SeparatorThicknessSize()
 	l.dividers[0].Move(fyne.NewPos(0, topHeight))

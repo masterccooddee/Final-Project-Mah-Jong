@@ -1,0 +1,40 @@
+package ui
+
+import (
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/dialog"
+)
+
+func ShowError(err error, w fyne.Window) {
+	dialog.ShowError(err, w)
+}
+
+var LoginSuccess = false
+var GUI *fyne.Container
+
+func UI() {
+	go interconnect()
+
+	a := app.New()
+	GUI = makeGUI()
+	go updateGUI()
+	a.Settings().SetTheme(myCustomTheme())
+
+	w := a.NewWindow("Mahjong")
+	w.Resize(fyne.NewSize(1024, 600))
+	w.SetContent(GUI)
+
+	w.CenterOnScreen()
+
+	x := a.NewWindow("Login or Register")
+	x.Resize(fyne.NewSize(300, 100))
+	x.CenterOnScreen()
+
+	x.SetContent(LORinterface(&x, &w))
+	x.Show()
+	w.FixedSize()
+
+	a.Run()
+
+}

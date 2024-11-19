@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-zeromq/zmq4"
 )
@@ -59,143 +60,178 @@ func IDcheck(ID string) bool {
  * 		LOGOUT 				(Logout)              *
 \**********************************************************************/
 
-func Cli_handle(conn net.Conn, player player_in) {
+func Cli_handle(conn net.Conn, player player_in, ctx context.Context) {
 	// 3. 讀取資料
 	defer conn.Close()
 	data := make([]byte, 4096)
 	for {
-		n, err := conn.Read(data)
-		if n == 0 {
-			fmt.Printf("\n%v Connection closed\n", conn.RemoteAddr())
+		select {
+		case <-ctx.Done():
 			return
-		}
-		if err != nil {
-			fmt.Println("Error reading:", err)
-			return
-		}
-
-		data_s := string(data[:n])
-		data_s = strings.TrimSpace(data_s)
-
-		command := strings.Split(data_s, " ")
-		switch command[0] {
-		case "ROOM":
-			if player.ID == "" {
-				conn.Write([]byte("Please login first\n"))
-				continue
+		default:
+			conn.SetReadDeadline((time.Now().Add(time.Second * 10)))
+			n, err := conn.Read(data)
+			if err != nil {
+				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+					// 超時錯誤，繼續檢查上下文
+					continue
+				}
+			}
+			if n == 0 {
+				if player.ID != "" {
+					if player.Room_ID != -1 {
+						room := roomlist[player.Room_ID]
+						room.leave_room(&player)
+					}
+					delete(playerlist, player.ID)
+				}
+				log.Printf("[#FFA500]%v[reset] Connection closed\n", conn.RemoteAddr())
+				return
+			}
+			if err != nil {
+				log.Println("[red]ERROR:[reset] ", err)
+				return
 			}
 
-			if len(command) < 2 {
-				conn.Write([]byte("False Command\n"))
-				continue
-			}
+			data_s := string(data[:n])
+			data_s = strings.TrimSpace(data_s)
 
-			switch command[1] {
-			case "MAKE":
-				if player.Room_ID != -1 {
-					conn.Write([]byte("You are already in a room\n"))
+			command := strings.Split(data_s, " ")
+			switch command[0] {
+			case "ROOM":
+				if player.ID == "" {
+					conn.Write([]byte("Please login first\n"))
 					continue
 				}
 
-				room_id := rand.Intn(99) + 1
-				_, exist := roomlist[room_id]
-				for exist {
-					room_id = rand.Intn(99) + 1
-					_, exist = roomlist[room_id]
-				}
-				makeRoom(room_id, true)
-				room := roomlist[room_id]
-				room.go_in_room(&player, room_id)
-
-			case "JOIN":
-				if player.Room_ID != -1 {
-					conn.Write([]byte("You are already in a room\n"))
-					continue
-				}
-				if len(command) < 3 {
+				if len(command) < 2 {
 					conn.Write([]byte("False Command\n"))
 					continue
 				}
-				room_id, err := strconv.Atoi(command[2])
+
+				switch command[1] {
+				case "MAKE":
+					if player.Room_ID != -1 {
+						conn.Write([]byte("You are already in a room\n"))
+						log.Printf("[red]ERROR:[reset] %s try to [yellow]MAKE[reset] room while in a room\n", player.ID)
+						continue
+					}
+
+					room_id := rand.Intn(99) + 1
+					_, exist := roomlist[room_id]
+					for exist {
+						room_id = rand.Intn(99) + 1
+						_, exist = roomlist[room_id]
+					}
+					makeRoom(room_id, true)
+					player.Room_ID = room_id
+					log.Printf("[#FFA500]%s[reset] create room %d\n", player.ID, room_id)
+					room := roomlist[room_id]
+					room.go_in_room(&player, room_id)
+
+				case "JOIN":
+					if player.Room_ID != -1 {
+						conn.Write([]byte("You are already in a room\n"))
+						log.Printf("[red]ERROR:[reset] %s try to [yellow]JOIN[reset] room while in a room\n", player.ID)
+						continue
+					}
+					if len(command) < 3 {
+						conn.Write([]byte("False Command\n"))
+						continue
+					}
+					room_id, err := strconv.Atoi(command[2])
+					if err != nil {
+						conn.Write([]byte("False Command\n"))
+						continue
+					}
+					room := roomlist[room_id]
+					room.go_in_room(&player, room_id)
+
+				case "FIND":
+					if player.Room_ID != -1 {
+						conn.Write([]byte("You are already in a room\n"))
+						log.Printf("[red]ERROR:[reset] %s try to [yellow]FIND[reset] room while in a room\n", player.ID)
+						continue
+					}
+
+					// 等待清空房間
+					for cleaning {
+
+					}
+
+					mutex.Lock()
+					Room_finder(&player)
+					mutex.Unlock()
+
+				case "LEAVE":
+					if player.Room_ID == -1 {
+						conn.Write([]byte("You are not in a room\n"))
+						log.Printf("[red]ERROR:[reset] %s try to [yellow]LEAVE[reset] room while not in a room\n", player.ID)
+						continue
+					}
+					room := roomlist[player.Room_ID]
+					room.leave_room(&player)
+
+				default:
+					conn.Write([]byte("False Command\n"))
+					continue
+				}
+
+			case "REG":
+
+				if IDcheck(command[1]) {
+					conn.Write([]byte("False ID already exist\n"))
+					log.Println("[red]ERROR:[reset] ID already exist")
+					continue
+				}
+
+				file, err := os.OpenFile("playerlist.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 				if err != nil {
-					conn.Write([]byte("False Command\n"))
+					log.Println("[red]ERROR:[reset] ", err)
 					continue
 				}
-				room := roomlist[room_id]
-				room.go_in_room(&player, room_id)
+				defer file.Close()
+				str := command[1] + "\n"
+				_, err = file.WriteString(str)
+				if err != nil {
+					fmt.Println(err)
+				}
+				player.conn = conn
+				player.ID = command[1]
+				player.Room_ID = -1
+				playerlist[player.ID] = &player
+				str_success := "Register success, " + "ID: " + command[1] + "\n"
+				conn.Write([]byte(str_success))
+				log.Println("Register success, ID: [#FFA500]" + command[1] + "[reset]")
 
-			case "FIND":
-				if player.Room_ID != -1 {
-					conn.Write([]byte("You are already in a room\n"))
+			case "LOGIN":
+				if IDcheck(command[1]) == false {
+					conn.Write([]byte("False ID not exist\n"))
+					log.Println("[red]ERROR:[reset] ID not exist")
 					continue
 				}
 
-				// 等待清空房間
-				for cleaning {
-
-				}
-
-				mutex.Lock()
-				Room_finder(&player)
-				mutex.Unlock()
-
-			case "LEAVE":
-				if player.Room_ID == -1 {
-					conn.Write([]byte("You are not in a room\n"))
+				if _, ok := playerlist[command[1]]; ok {
+					conn.Write([]byte("False ID already login\n"))
+					log.Println("[red]ERROR:[reset] ID already login")
 					continue
 				}
-				room := roomlist[player.Room_ID]
-				room.leave_room(&player)
 
-			default:
-				conn.Write([]byte("False Command\n"))
-				continue
+				player.conn = conn
+				player.ID = command[1]
+				player.Room_ID = -1
+				playerlist[player.ID] = &player
+				conn.Write([]byte("Welcome back " + player.ID + "\n"))
+				log.Println("[#FFA500]" + player.ID + "[reset] login")
+
+			case "LOGOUT":
+				log.Println("[#FFA500]" + player.ID + "[reset] logout")
+				delete(playerlist, player.ID)
+				conn.Close()
+
 			}
-
-		case "REG":
-
-			if IDcheck(command[1]) {
-				conn.Write([]byte("False ID already exist\n"))
-				continue
-			}
-
-			file, err := os.OpenFile("playerlist.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				log.Println("Error reading:", err)
-				continue
-			}
-			defer file.Close()
-			str := command[1] + "\n"
-			_, err = file.WriteString(str)
-			if err != nil {
-				fmt.Println(err)
-			}
-			playerlist[command[1]] = &player_in{ID: command[1], conn: conn, Room_ID: -1}
-			player.ID = command[1]
-			player.conn = conn
-			player.Room_ID = -1
-			str_success := "Register success, " + "ID: " + command[1] + "\n"
-			conn.Write([]byte(str_success))
-
-		case "LOGIN":
-			if IDcheck(command[1]) == false {
-				conn.Write([]byte("False ID not exist\n"))
-				continue
-			}
-
-			player.conn = conn
-			player.ID = command[1]
-			player.Room_ID = -1
-			playerlist[player.ID] = &player
-			conn.Write([]byte("Welcome back " + player.ID + "\n"))
-
-		case "LOGOUT":
-			delete(playerlist, player.ID)
-			conn.Close()
 
 		}
-
-		log.Println(playerlist)
 
 	}
 
@@ -209,8 +245,10 @@ func zmqrecv() {
 			log.Println("Error receiving message:", err)
 			return
 		}
-		ROOMID := string(msg.Frames[1])
-		msgout := string(msg.Frames[2])
+
+		player_name := strings.TrimSpace(string(msg.Frames[0]))
+		ROOMID := strings.TrimSpace(string(msg.Frames[1]))
+		msgout := strings.TrimSpace(string(msg.Frames[2]))
 
 		roomID, err := strconv.Atoi(ROOMID)
 		if err != nil {
@@ -218,25 +256,34 @@ func zmqrecv() {
 			continue
 		}
 		room := roomlist[roomID]
+
+		msglog := fmt.Sprintf("Room [yellow]%d[reset]: [#FFA500]%s[reset] -> %s", roomID, player_name, msgout)
+		zmqloger.Println(msglog)
+
 		room.recvchan <- msgout
 
 	}
 }
 
+var cancel context.CancelFunc
+var ctx context.Context
+
 func startserver() {
+
+	ctx, cancel = context.WithCancel(context.Background())
 	//建立tcp连接
 	// 1. 建立監聽器
 	ln, err := net.Listen("tcp", ":8080")
 	defer ln.Close()
 	if err != nil {
-		fmt.Println("Error listening:", err)
+		log.Println("Error listening:", err)
 		return
 	}
 
-	fmt.Println("Server is listening on port 8080")
-
+	fmt.Fprintln(textView, "Server is listening on port 8080")
+	log.SetOutput(textView)
 	// ROOM 的規則運行與player的互動
-	router = zmq4.NewRouter(context.Background())
+	router = zmq4.NewRouter(context.Background(), zmq4.WithLogger(zmqloger))
 	defer router.Close()
 
 	// ROUTER 監聽端點
@@ -246,24 +293,30 @@ func startserver() {
 		return
 	}
 
-	fmt.Println("Router is listening on port 7125")
+	fmt.Fprintln(textView, "Router is listening on port 7125")
 
 	go zmqrecv()
 
-	go RoomCleaner()
+	go RoomCleaner(ctx)
 
 	// 2. 建立連線
 
 	for {
-		conn, err := ln.Accept()
-		fmt.Printf("%v Connection established\n", conn.RemoteAddr())
-		if err != nil {
-			fmt.Println("Error accepting:", err)
-			return
 
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			conn, err := ln.Accept()
+			log.Printf("[#FFA500]%v[reset] Connection established\n", conn.RemoteAddr())
+			if err != nil {
+				log.Println("Error accepting:", err)
+				return
+
+			}
+			//conn.Write([]byte("Welcome to the server\n"))
+			go Cli_handle(conn, player_in{}, ctx)
 		}
-		conn.Write([]byte("Welcome to the server\n"))
-		go Cli_handle(conn, player_in{})
 
 	}
 
