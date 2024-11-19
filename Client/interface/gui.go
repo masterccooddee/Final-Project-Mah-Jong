@@ -85,6 +85,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
 		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
 		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+		fmt.Println("Send:", sendname)
 		myCards.Card = append(myCards.Card, newcc)
 		myCards.removeCard(sendname)
 		myCards.SortCard()
