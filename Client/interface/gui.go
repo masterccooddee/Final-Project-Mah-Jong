@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"image/color"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -76,7 +77,8 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 	fmt.Println("Tapped")
 	//if !tapped {
 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-	dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(i.Resource.Name())))
+	sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+	dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
 	//} else {
 	//	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+10))
 	//}
