@@ -179,6 +179,10 @@ func Cli_handle(conn net.Conn, player player_in, ctx context.Context) {
 
 			case "REG":
 
+				if len(command) < 2 {
+					conn.Write([]byte("False Command\n"))
+					continue
+				}
 				if IDcheck(command[1]) {
 					conn.Write([]byte("False ID already exist\n"))
 					log.Println("[red]ERROR:[reset] ID already exist")
@@ -205,6 +209,11 @@ func Cli_handle(conn net.Conn, player player_in, ctx context.Context) {
 				log.Println("Register success, ID: [#FFA500]" + command[1] + "[reset]")
 
 			case "LOGIN":
+
+				if len(command) < 2 {
+					conn.Write([]byte("False Command\n"))
+					continue
+				}
 				if IDcheck(command[1]) == false {
 					conn.Write([]byte("False ID not exist\n"))
 					log.Println("[red]ERROR:[reset] ID not exist")
@@ -228,6 +237,10 @@ func Cli_handle(conn net.Conn, player player_in, ctx context.Context) {
 				log.Println("[#FFA500]" + player.ID + "[reset] logout")
 				delete(playerlist, player.ID)
 				conn.Close()
+
+			default:
+				conn.Write([]byte("False Command\n"))
+				continue
 
 			}
 
