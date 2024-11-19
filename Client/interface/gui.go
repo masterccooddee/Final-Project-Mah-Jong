@@ -1,13 +1,16 @@
 package ui
 
 import (
+	"fmt"
 	"image/color"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/widget"
+	"github.com/go-zeromq/zmq4"
 )
 
 var inroom bool = false
@@ -62,18 +65,27 @@ func NewTappableCard(res fyne.Resource) *TappableCard {
 
 var tapped bool = false
 
+func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
+	fmt.Println("MouseIn")
+	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-10))
+}
+
+var nowthrowpos int = 0
+
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
-	//fmt.Println("Tapped")
+	fmt.Println("Tapped")
 	//if !tapped {
 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+	dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(i.Resource.Name())))
 	//} else {
 	//	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+10))
 	//}
+	nowthrowpos++
 }
 
 func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
 	//fmt.Println("TappedSecondary")
-	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
+	//i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
 }
 
 func makeBanner_bottom_bar() [13]fyne.CanvasObject {
@@ -84,6 +96,7 @@ func makeBanner_bottom_bar() [13]fyne.CanvasObject {
 	if myCards.Card == nil {
 		for i := 0; i < 13; i++ {
 			cc := canvas.NewRectangle(color.White)
+			cc.Hide()
 			//cc := canvas.NewImageFromResource(resourceBackPng)
 			//cc.FillMode = canvas.ImageFillStretch
 			cardslice[i] = cc
@@ -103,7 +116,21 @@ func makeBanner_bottom_bar() [13]fyne.CanvasObject {
 	return cardslice
 }
 
+var new_card fyne.CanvasObject
 var top_bar *widget.Label
+var grid *fyne.Container
+
+func makenewcard() fyne.CanvasObject {
+	if _, ok := static_name[newcc]; ok {
+		cc := NewTappableCard(static_name[newcc])
+		//cc.FillMode = canvas.ImageFillContain
+		return cc
+	}
+	//nocc := canvas.NewImageFromResource(resourceBackPng)
+	nocc := canvas.NewRectangle(color.White)
+	nocc.Hide()
+	return nocc
+}
 
 func makeGUI() *fyne.Container {
 	received_content := canvas.NewText("", color.Black)
@@ -114,33 +141,33 @@ func makeGUI() *fyne.Container {
 	left_bar := widget.NewLabel("Left")
 	right_bar := widget.NewLabel("Right")
 	bottom_bar = makeBanner_bottom_bar()
+	new_card = makenewcard()
 
-	content := canvas.NewText("", color.Black)
-	content.TextSize = 12
+	grid = container.NewGridWithColumns(3,
+		container.NewCenter(canvas.NewText("", color.Black)),
+		container.NewCenter(canvas.NewText("", color.Black)), //1 : Front
+		container.NewCenter(canvas.NewText("", color.Black)),
+		container.NewCenter(canvas.NewText("", color.Black)), //3 : Left
+		container.NewCenter(canvas.NewText("", color.Black)),
+		container.NewCenter(canvas.NewText("", color.Black)), //5 : Right
+		container.NewCenter(canvas.NewText("", color.Black)),
+		container.NewCenter(canvas.NewText("", color.Black)), //7 : Myself
+		container.NewCenter(canvas.NewText("", color.Black)),
+	)
 
 	dividers := [5]fyne.CanvasObject{
 		widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(),
 	}
-	objs := []fyne.CanvasObject{content, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12]}
+	objs := []fyne.CanvasObject{grid, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12], new_card}
 	objs = append(objs, dividers[:]...)
-	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, content, bottom_bar, dividers), objs...)
+	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, grid, bottom_bar, dividers), objs...)
 }
 
 func updateGUI() {
 	for range time.Tick(1 * time.Second) {
 		top_bar.SetText("Top " + time.Now().Format("15:04:05"))
 		canvas.Refresh(top_bar)
-		// bottom_bar = makeBanner_bottom_bar()
-		// for i := 0; i < 13; i++ {
-		// 	GUI.Objects[5+i] = bottom_bar[i]
-		// }
-		// GUI.Refresh()
 
-		/* for i, obj := range GUI.Objects {
-			if label, ok := obj.(*canvas.Image); ok {
-				fmt.Println("label:", label, "i:", i)
-			}
-		} */
 		bottom_bar = makeBanner_bottom_bar()
 		for c := range bottom_bar {
 			if c == 0 {
@@ -155,6 +182,12 @@ func updateGUI() {
 			GUI.Objects[5+i] = bottom_bar[i]
 		}
 		//GUI.Objects[5] = bottom_bar[0]
+
+		new_card = makenewcard()
+		new_card.Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*14, GUI.Size().Height-sideWidth))
+		new_card.Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+
+		GUI.Objects[18] = new_card
 
 	}
 }

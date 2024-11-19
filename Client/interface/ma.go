@@ -64,43 +64,35 @@ func (m *mao) splitCard() {
 }
 
 func (m *mao) SortCard() {
-	wanKeys := make([]int, 0, len(m.Wan))
-	for k := range m.Wan {
-		wanKeys = append(wanKeys, k)
-	}
-	sort.Ints(wanKeys)
 
-	tiaoKeys := make([]int, 0, len(m.Tiao))
-	for k := range m.Tiao {
-		tiaoKeys = append(tiaoKeys, k)
-	}
-	sort.Ints(tiaoKeys)
+	var wan []string
+	var tiao []string
+	var tong []string
+	var word []string
 
-	tongKeys := make([]int, 0, len(m.Tong))
-	for k := range m.Tong {
-		tongKeys = append(tongKeys, k)
+	for _, k := range m.Card {
+		switch k[0] {
+		case 'w':
+			wan = append(wan, k)
+		case 't':
+			tong = append(tong, k)
+		case 'l':
+			tiao = append(tiao, k)
+		default:
+			word = append(word, k)
+		}
 	}
-	sort.Ints(tongKeys)
-
-	wordKeys := make([]string, 0, len(m.Word))
-	for k := range m.Word {
-		wordKeys = append(wordKeys, k)
-	}
-	sort.Strings(wordKeys)
-
+	sort.Slice(wan, func(i, j int) bool { return wan[i][1] < wan[j][1] })
+	sort.Slice(tiao, func(i, j int) bool { return tiao[i][1] < tiao[j][1] })
+	sort.Slice(tong, func(i, j int) bool { return tong[i][1] < tong[j][1] })
+	sort.Slice(word, func(i, j int) bool { return word[i] < word[j] })
 	// 清空 Card 切片
 	m.Card = nil
 	// 合併切片
-	for _, k := range wanKeys {
-		m.Card = append(m.Card, "w"+strconv.Itoa(k))
-	}
-	for _, k := range tiaoKeys {
-		m.Card = append(m.Card, "l"+strconv.Itoa(k))
-	}
-	for _, k := range tongKeys {
-		m.Card = append(m.Card, "t"+strconv.Itoa(k))
-	}
-	m.Card = append(m.Card, wordKeys...)
+	m.Card = append(m.Card, wan...)
+	m.Card = append(m.Card, tong...)
+	m.Card = append(m.Card, tiao...)
+	m.Card = append(m.Card, word...)
 
 }
 
