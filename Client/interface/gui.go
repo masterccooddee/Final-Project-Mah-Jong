@@ -131,15 +131,15 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 		if _, ok := static_name[newcc]; ok {
 			cc := NewTappableCard(static_name[newcc])
 			//cc.FillMode = canvas.ImageFillContain
-			cardslice[len(myCards.Card)] = cc
-			for i := len(myCards.Card) + 1; i < 14; i++ {
+			cardslice[len(myCards.Card)-1] = cc
+			for i := len(myCards.Card); i < 14; i++ {
 				cc := canvas.NewRectangle(color.White)
 				cc.Hide()
 				cardslice[i] = cc
 			}
 			return cardslice
 		} else {
-			for i := len(myCards.Card); i < 14; i++ {
+			for i := len(myCards.Card) - 1; i < 14; i++ {
 				cc := canvas.NewRectangle(color.White)
 				cc.Hide()
 				cardslice[i] = cc
@@ -203,11 +203,11 @@ func updateGUI() {
 
 		bottom_bar = makeBanner_bottom_bar()
 		for c := 0; c < 14; c++ {
-			fmt.Println("c:", c)
+			//fmt.Println("c:", c)
 			if c == 0 {
 				bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
 				bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-			} else if c == len(myCards.Card) {
+			} else if c == len(myCards.Card)-1 {
 				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(c+1), GUI.Size().Height-sideWidth))
 				bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 			} else {

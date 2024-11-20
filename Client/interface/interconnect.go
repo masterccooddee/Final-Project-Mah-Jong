@@ -119,23 +119,20 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 						fmt.Println("My Position:", myPosition)
 						// 逆時針標記其他玩家的位置
 						playerPositions = make(map[int]string)
+
+						rightPlayer := (myPosition + 1) % 4
+						frontPlayer := (myPosition + 2) % 4
+						leftPlayer := (myPosition + 3) % 4
+
 						for playerID, position := range pos.Pos {
-							relativePosition := (position - myPosition + 4) % 4 // 逆時針計算相對位置
-							playerPositions[relativePosition] = playerID
+							playerPositions[position] = playerID
 						}
 
 						// 打印玩家位置
-						for i := 0; i < 4; i++ {
-							if playerID, ok := playerPositions[i]; ok {
-								if i == 0 {
-									fmt.Println("Myself:", playerID)
-									grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerID
-								} else {
-									fmt.Printf("Player %d: %s\n", i, playerID)
-									grid.Objects[7-i*2].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerID
-								}
-							}
-						}
+						grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[frontPlayer] // 對面的玩家
+						grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[leftPlayer]  // 左邊的玩家
+						grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[rightPlayer] // 右邊的玩家
+						grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Text = ID                           // 自己的位置
 
 						msg, _ = dealer.Recv()
 						fmt.Println("Received message:", string(msg.Frames[0]))
@@ -157,7 +154,6 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 
 								dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to pong %s?", mingcard[1]), func(confirm bool) {
 									if confirm {
-										mingcardamount++
 										sendmessage := fmt.Sprintf("Pong %d %s", pos.Pos[ID], mingcard[1])
 										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
 										myCards.removeCard(mingcard[1])
@@ -168,16 +164,59 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
 								}, fyne.CurrentApp().Driver().AllWindows()[0])
 							}
-						case "CHI":
-							fmt.Printf("CHI %s", mingcard[1])
-							dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to chi %s?", mingcard[1]), func(confirm bool) {
-								if confirm {
-									sendmessage := fmt.Sprintf("CHI %d %s", pos.Pos[ID], mingcard[1])
-									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
-									return
+						case "TRUE":
+							kind := string(cardthrow[1][0])
+							number, _ := strconv.Atoi(string(cardthrow[1][1]))
+							sendmessage := fmt.Sprintf("Chi %d", pos.Pos[ID])
+							var CheckPos [3]bool
+
+							RightCard := kind + strconv.Itoa(number+1)
+							LeftCard := kind + strconv.Itoa(number-1)
+							Right2Card := kind + strconv.Itoa(number+2)
+							Left2Card := kind + strconv.Itoa(number-2)
+
+							button0 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], cardthrow[1], RightCard, Right2Card), func() {
+								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 0")))
+								myCards.removeCard(RightCard)
+								myCards.removeCard(Right2Card)
+								myCards.SortCard()
+							})
+							button1 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], LeftCard, cardthrow[1], RightCard), func() {
+								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 1")))
+								myCards.removeCard(LeftCard)
+								myCards.removeCard(RightCard)
+								myCards.SortCard()
+							})
+							button2 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], Left2Card, LeftCard, cardthrow[1]), func() {
+								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 2")))
+								myCards.removeCard(Left2Card)
+								myCards.removeCard(LeftCard)
+								myCards.SortCard()
+							})
+							cancelbutton := widget.NewButton("Cancel", func() {
+								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
+							})
+
+							for _, MingPos := range mingcard[1:] {
+								pos, _ := strconv.Atoi(MingPos)
+								CheckPos[pos] = true
+							}
+
+							for i, v := range CheckPos {
+								if !v {
+									switch i {
+									case 0:
+										button0.Hide()
+									case 1:
+										button1.Hide()
+									case 2:
+										button2.Hide()
+									}
 								}
-								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("CANCEL")))
-							}, fyne.CurrentApp().Driver().AllWindows()[0])
+
+								container := container.NewHBox(button0, button1, button2, cancelbutton)
+								dialog.ShowCustomWithoutButtons("Chi", container, fyne.CurrentApp().Driver().AllWindows()[0])
+							}
 						default:
 							fmt.Println("Received message:", string(msg.Frames[0]))
 							newcc = string(msg.Frames[0])
