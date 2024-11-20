@@ -86,7 +86,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
 		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
 		fmt.Println("Send:", sendname)
-		myCards.Card = append(myCards.Card, newcc)
+		//myCards.Card = append(myCards.Card, newcc)
 		myCards.removeCard(sendname)
 		myCards.SortCard()
 		newcc = ""
@@ -101,6 +101,12 @@ func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
 	//fmt.Println("TappedSecondary")
 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
 	tapped = !tapped
+}
+
+func makeFromSlice(sl []string) []string {
+	result := make([]string, len(sl))
+	copy(result, sl)
+	return result
 }
 
 func makeBanner_bottom_bar() [14]fyne.CanvasObject {
@@ -125,24 +131,31 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 			if _, ok := static_name[card]; ok {
 				cc := NewTappableCard(static_name[card])
 				//cc.FillMode = canvas.ImageFillContain
+				//print("len(myCards.Card): ", len(myCards.Card))
 				cardslice[i] = cc
 			}
 		}
 		if _, ok := static_name[newcc]; ok {
 			cc := NewTappableCard(static_name[newcc])
-			//cc.FillMode = canvas.ImageFillContain
+			fmt.Printf("len(myCards.Card): %d\n", len(myCards.Card))
+			myCards.Card = append(myCards.Card, newcc)
+			newcc = ""
 			cardslice[len(myCards.Card)-1] = cc
-			for i := len(myCards.Card); i < 14; i++ {
-				cc := canvas.NewRectangle(color.White)
-				cc.Hide()
-				cardslice[i] = cc
+			if len(myCards.Card) < 14 {
+				for i := len(myCards.Card); i < 14; i++ {
+					cc := canvas.NewRectangle(color.White)
+					cc.Hide()
+					cardslice[i] = cc
+				}
 			}
 			return cardslice
 		} else {
-			for i := len(myCards.Card) - 1; i < 14; i++ {
-				cc := canvas.NewRectangle(color.White)
-				cc.Hide()
-				cardslice[i] = cc
+			if len(myCards.Card) < 14 {
+				for i := len(myCards.Card); i < 14; i++ {
+					cc := canvas.NewRectangle(color.White)
+					cc.Hide()
+					cardslice[i] = cc
+				}
 			}
 		}
 		return cardslice
@@ -197,7 +210,7 @@ func makeGUI() *fyne.Container {
 }
 
 func updateGUI() {
-	for range time.Tick(1 * time.Second) {
+	for range time.Tick(2 * time.Second) {
 		top_bar.SetText("Top " + time.Now().Format("15:04:05"))
 		canvas.Refresh(top_bar)
 
@@ -207,8 +220,8 @@ func updateGUI() {
 			if c == 0 {
 				bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
 				bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-			} else if c == len(myCards.Card)-1 {
-				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(c+1), GUI.Size().Height-sideWidth))
+			} else if c == 13 {
+				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*14, GUI.Size().Height-sideWidth))
 				bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 			} else {
 				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))

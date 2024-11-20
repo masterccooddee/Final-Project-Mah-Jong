@@ -219,7 +219,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 							}
 						default:
 							fmt.Println("Received message:", string(msg.Frames[0]))
-							newcc = string(msg.Frames[0])
+							newcc = strings.TrimSpace(string(msg.Frames[0]))
 						}
 					}
 				}
