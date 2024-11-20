@@ -50,6 +50,7 @@ func (r *Room) sendtoall(msg string) {
 func (r *Room) MingCard(player *Player, card string, now int) (count int) { //count 有幾個人能鳴牌
 	// 判斷是否有人能鳴牌
 	var po, g, c bool
+	var msgcomb string
 
 	for _, p := range r.Players {
 		if p.ID == player.ID {
@@ -58,13 +59,13 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 		// 判斷能否碰
 		if canPong(p, card) {
 			// 處理碰牌邏輯
-			sendtoplayer("Pong "+card, p.ID)
+			msgcomb += "Pong " + card + ","
 			po = true
 		}
 		// 判斷能否槓
 		if canGang(p, card) {
 			// 處理槓牌邏輯
-			sendtoplayer("Gang "+card, p.ID)
+			msgcomb += "Gang " + card + ","
 			g = true
 		}
 		// 判斷能否吃 (只有下家可以吃)
@@ -79,14 +80,17 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 			}
 			chi = chi[:len(chi)-1]
 
-			sendtoplayer("Chi "+chi, p.ID)
+			msgcomb += "Chi " + chi + ","
 			c = true
 		}
 
 		if po || g || c {
 			count++
+			msgcomb = strings.TrimRight(msgcomb, ",")
+			sendtoplayer(msgcomb, player.ID)
 		}
 		po, g, c = false, false, false
+		msgcomb = ""
 
 	}
 	return count
