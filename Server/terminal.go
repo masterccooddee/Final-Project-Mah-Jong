@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"sort"
 	"strconv"
@@ -24,6 +25,34 @@ var ip string
 
 var zmqlog *tview.TextView
 var zmqloger *log.Logger
+
+func getHostIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8:53")
+	defer conn.Close()
+	if err != nil {
+		log.Printf("Error getting IP addresses: %v\n", err)
+		return ""
+	}
+	addr := conn.LocalAddr().(*net.UDPAddr)
+	ip := addr.IP.String()
+	return ip
+
+}
+
+func getPublicIP() string {
+	resp, err := http.Get("https://api.ipify.org")
+	if err != nil {
+		log.Printf("Error getting IP addresses: %v\n", err)
+		return ""
+	}
+	defer resp.Body.Close()
+	ip, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error getting IP addresses: %v\n", err)
+		return ""
+	}
+	return string(ip)
+}
 
 func makeMenu(app *tview.Application, pages *tview.Pages) {
 
@@ -68,27 +97,16 @@ func makeMenu(app *tview.Application, pages *tview.Pages) {
 	textView.SetBorder(true).SetTitle("Lounge Log")
 
 	// 獲取伺服器的 IP 地址
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		log.Printf("Error getting IP addresses: %v\n", err)
-	} else {
-		for _, addr := range addrs {
-			if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
-				if ipNet.IP.To4() != nil {
-					ip = ipNet.IP.String()
-					break
-				}
-			}
-		}
-	}
+	ip = getHostIP()
+	publice_ip := getPublicIP()
 
 	online_player := strconv.Itoa(len(playerlist))
-	server_info_str := "Server IP: " + "[yellow]" + ip + "  " + "[reset]Lounge Port: [yellow]8080" + "  " + "[reset]Room Port: [yellow]7125" + "  " + "[reset]Online Player: [yellow]" + online_player + "[reset]"
+	server_info_str := "Server IP: " + "[yellow]" + ip + "[reset]  Public IP: " + "[yellow]" + publice_ip + "[reset]  Lounge Port: [yellow]8080" + "  " + "[reset]Room Port: [yellow]7125" + "  " + "[reset]Online Player: [yellow]" + online_player + "[reset]"
 
 	textView.SetChangedFunc(func() {
 		if now_page == "menu" {
 			online_player = strconv.Itoa(len(playerlist))
-			server_info_str = "Server IP: " + "[yellow]" + ip + "  " + "[reset]Lounge Port: [yellow]8080" + "  " + "[reset]Room Port: [yellow]7125" + "  " + "[reset]Online Player: [yellow]" + online_player + "[reset]"
+			server_info_str = "Server IP: " + "[yellow]" + ip + "[reset]  Public IP: " + "[yellow]" + publice_ip + "[reset]  Lounge Port: [yellow]8080" + "  " + "[reset]Room Port: [yellow]7125" + "  " + "[reset]Online Player: [yellow]" + online_player + "[reset]"
 			server_info.SetText(server_info_str)
 			app.Draw()
 		}
