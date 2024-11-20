@@ -400,7 +400,7 @@ func (r *Room) startgame(ctx context.Context) {
 					}
 				}
 				//格式： 動作 位置 牌 ex: Pong 1 w1, Chi 1 0 (0是種類)
-				//回傳： 動作 牌 playerID  ex: Pong w1 hehehe, Chi 0 hehehe (0是種類)
+				//回傳： 動作 牌 playerID  ex: Pong w1 hehehe, True Chi 0 hehehe (0是種類)
 				if ming != nil {
 
 					sort.Slice(ming, func(i, j int) bool {
@@ -479,7 +479,7 @@ func (r *Room) startgame(ctx context.Context) {
 						now = pos
 						for _, p := range r.Players {
 							if p.ID != r.Players[now].ID {
-								sendtoplayer("Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
+								sendtoplayer("True Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
 							}
 						}
 						continue
