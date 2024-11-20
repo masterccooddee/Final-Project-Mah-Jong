@@ -210,7 +210,7 @@ func makeGUI() *fyne.Container {
 }
 
 func updateGUI() {
-	for range time.Tick(2 * time.Second) {
+	for range time.Tick(3 * time.Second) {
 		top_bar.SetText("Top " + time.Now().Format("15:04:05"))
 		canvas.Refresh(top_bar)
 
