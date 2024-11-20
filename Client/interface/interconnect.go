@@ -42,6 +42,7 @@ var receivedMessage string
 var RoomID string
 var in string
 var gamestart bool = false
+var mingcardamount int
 
 func rrecv() string {
 	data := make([]byte, 4096)
@@ -150,25 +151,28 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window) fyne.Canvas
 
 						switch mingcard[0] {
 						case "PONG":
-							mingcard[1] = strings.ToLower(mingcard[1])
-							fmt.Printf("PONG %s", mingcard[1])
+							if len(mingcard) == 2 {
+								mingcard[1] = strings.ToLower(mingcard[1])
+								fmt.Printf("PONG %s", mingcard[1])
 
-							dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to pong %s?", mingcard[1]), func(confirm bool) {
-								if confirm {
-									sendmessage := fmt.Sprintf("Pong %s %s", ID, mingcard[1])
-									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
-									myCards.removeCard(mingcard[1])
-									myCards.removeCard(mingcard[1])
-									myCards.SortCard()
-									return
-								}
-								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-							}, fyne.CurrentApp().Driver().AllWindows()[0])
+								dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to pong %s?", mingcard[1]), func(confirm bool) {
+									if confirm {
+										mingcardamount++
+										sendmessage := fmt.Sprintf("Pong %d %s", pos.Pos[ID], mingcard[1])
+										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
+										myCards.removeCard(mingcard[1])
+										myCards.removeCard(mingcard[1])
+										myCards.SortCard()
+										return
+									}
+									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
+								}, fyne.CurrentApp().Driver().AllWindows()[0])
+							}
 						case "CHI":
 							fmt.Printf("CHI %s", mingcard[1])
 							dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to chi %s?", mingcard[1]), func(confirm bool) {
 								if confirm {
-									sendmessage := fmt.Sprintf("CHI %s %s", strconv.Itoa(pos.Pos[ID]), mingcard[1])
+									sendmessage := fmt.Sprintf("CHI %d %s", pos.Pos[ID], mingcard[1])
 									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
 									return
 								}

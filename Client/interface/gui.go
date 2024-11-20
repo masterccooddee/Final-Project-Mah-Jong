@@ -115,6 +115,7 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 			//cc := canvas.NewImageFromResource(resourceBackPng)
 			//cc.FillMode = canvas.ImageFillStretch
 			cardslice[i] = cc
+			mingcardamount = 0
 		}
 		return cardslice
 	} else {
@@ -130,14 +131,21 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 		if _, ok := static_name[newcc]; ok {
 			cc := NewTappableCard(static_name[newcc])
 			//cc.FillMode = canvas.ImageFillContain
-			cardslice[13] = cc
+			cardslice[len(myCards.Card)] = cc
+			for i := len(myCards.Card) + 1; i < 14; i++ {
+				cc := canvas.NewRectangle(color.White)
+				cc.Hide()
+				cardslice[i] = cc
+			}
 			return cardslice
 		} else {
-			cc := canvas.NewRectangle(color.White)
-			cc.Hide()
-			cardslice[13] = cc
-			return cardslice
+			for i := len(myCards.Card); i < 14; i++ {
+				cc := canvas.NewRectangle(color.White)
+				cc.Hide()
+				cardslice[i] = cc
+			}
 		}
+		return cardslice
 	}
 
 }
@@ -194,13 +202,14 @@ func updateGUI() {
 		canvas.Refresh(top_bar)
 
 		bottom_bar = makeBanner_bottom_bar()
-		for c := range bottom_bar {
+		for c := 0; c < 14; c++ {
+			fmt.Println("c:", c)
 			if c == 0 {
 				bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
 				bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-			} else if c == 13 {
-				bottom_bar[13].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*14, GUI.Size().Height-sideWidth))
-				bottom_bar[13].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+			} else if c == len(myCards.Card) {
+				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(c+1), GUI.Size().Height-sideWidth))
+				bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 			} else {
 				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
 				bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
