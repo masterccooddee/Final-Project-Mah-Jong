@@ -48,28 +48,30 @@ func TestRest(t *testing.T) {
 		{"False ID already exist", "REG hehehe"},
 		{"Register success, ID: 222", "REG 222"},
 		{"False Command", "ROOM"},
-		{"True Room", "ROOM MAKE"}, //後面還要接數字
+		{"True Room", "ROOM MAKE"},
 		{"You are already in a room", "ROOM FIND"},
 		{"You are already in a room", "ROOM JOIN"},
+		{"You are already in a room", "ROOM JOIN 11"},
 		{"True Leave room", "ROOM LEAVE"},
 		{"You are not in a room", "ROOM LEAVE"},
 		{"False Command", "ROOM JOIN"},
 		{"False Command", "ROOM JOIN ***"},
-		{"True Room", "ROOM FIND"}, //後面還要接數字
+		{"True Room", "ROOM FIND"}, 
 		{"False ID not exist", "LOGIN 111"},
 		{"False Command", "LOGI"},
 		{"False Command", "LOGINN"},
 		{"Welcome back hehehe", "LOGIN hehehe"},
 		{"False ID already login", "LOGIN hehehe"},
 		{"False Command", "ROOM"},
-		{"True Room", "ROOM MAKE"}, //後面還要接數字
+		{"True Room", "ROOM MAKE"}, 
 		{"You are already in a room", "ROOM FIND"},
 		{"You are already in a room", "ROOM JOIN"},
+		{"You are already in a room", "ROOM JOIN 11"},
 		{"True Leave room", "ROOM LEAVE"},
 		{"You are not in a room", "ROOM LEAVE"},
 		{"False Command", "ROOM JOIN"},
 		{"False Command", "ROOM JOIN ***"},
-		{"True Room", "ROOM FIND"}, //後面還要接數字
+		{"True Room", "ROOM FIND"}, 
 	}
 
 	for _, e := range connectTest {
