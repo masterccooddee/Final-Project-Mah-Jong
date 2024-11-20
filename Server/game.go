@@ -364,10 +364,10 @@ func (r *Room) startgame(ctx context.Context) {
 					//接收玩家鳴牌
 					getcard := strings.TrimSpace(<-r.recvchan)
 					getcardslice := strings.Split(getcard, " ")
-					getcard = getcardslice[1] + " " + getcardslice[2] + " " + getcardslice[3]
-
-					if getcard == "Cancel" {
+					if getcardslice[1] == "Cancel" {
 						continue
+					} else {
+						getcard = getcardslice[1] + " " + getcardslice[2] + " " + getcardslice[3]
 					}
 
 					ming = append(ming, getcard)
