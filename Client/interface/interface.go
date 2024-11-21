@@ -33,7 +33,7 @@ func UI() {
 	x.CenterOnScreen()
 
 	y := a.NewWindow("Chi")
-	y.Resize(fyne.NewSize(300, 100))
+	y.Resize(fyne.NewSize(800, 100))
 	y.CenterOnScreen()
 
 	x.SetContent(LORinterface(&x, &w, &y))
