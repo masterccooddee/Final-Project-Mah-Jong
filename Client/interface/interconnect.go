@@ -42,7 +42,13 @@ var receivedMessage string
 var RoomID string
 var in string
 var gamestart bool = false
-var mingcardamount int
+var mingcardamount int = 0
+
+// for chi
+var RightCard string
+var LeftCard string
+var Right2Card string
+var Left2Card string
 
 func rrecv() string {
 	data := make([]byte, 4096)
@@ -178,6 +184,9 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										myCards.removeCard(mingcard[1])
 										myCards.removeCard(mingcard[1])
 										myCards.SortCard()
+										newcc = "Finish Pong"
+										mingcardamount++
+										fmt.Println("{mingcardamount}", mingcardamount)
 										return
 									}
 									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
@@ -189,35 +198,53 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 							sendmessage := fmt.Sprintf("Chi %d", pos.Pos[ID])
 							var CheckPos [3]bool
 
-							RightCard := kind + strconv.Itoa(number+1)
-							LeftCard := kind + strconv.Itoa(number-1)
-							Right2Card := kind + strconv.Itoa(number+2)
-							Left2Card := kind + strconv.Itoa(number-2)
+							RightCard = kind + strconv.Itoa(number+1)
+							LeftCard = kind + strconv.Itoa(number-1)
+							Right2Card = kind + strconv.Itoa(number+2)
+							Left2Card = kind + strconv.Itoa(number-2)
+
+							var dialogWindow *dialog.CustomDialog
 
 							button0 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], cardthrow[1], RightCard, Right2Card), func() {
 								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 0")))
-								myCards.removeCard(RightCard)
-								myCards.removeCard(Right2Card)
-								myCards.SortCard()
-								(*chiwindow).Close()
+								RightCard = strings.TrimSpace(RightCard)
+								Right2Card = strings.TrimSpace(Right2Card)
+								//myCards.removeCard(RightCard)
+								//myCards.removeCard(Right2Card)
+								//myCards.SortCard()
+								newcc = "Finish Chi 0"
+								mingcardamount++
+								fmt.Println("{mingcardamount}", mingcardamount)
+								dialogWindow.Hide()
 							})
 							button1 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], LeftCard, cardthrow[1], RightCard), func() {
 								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 1")))
-								myCards.removeCard(LeftCard)
-								myCards.removeCard(RightCard)
-								myCards.SortCard()
-								(*chiwindow).Close()
+								LeftCard = strings.TrimSpace(LeftCard)
+								RightCard = strings.TrimSpace(RightCard)
+								//myCards.removeCard(LeftCard)
+								//myCards.removeCard(RightCard)
+								//myCards.SortCard()
+								newcc = "Finish Chi 1"
+								mingcardamount++
+								fmt.Println("{mingcardamount}", mingcardamount)
+								dialogWindow.Hide()
 							})
 							button2 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], Left2Card, LeftCard, cardthrow[1]), func() {
 								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 2")))
-								myCards.removeCard(Left2Card)
-								myCards.removeCard(LeftCard)
-								myCards.SortCard()
-								(*chiwindow).Close()
+								Left2Card = strings.TrimSpace(Left2Card)
+								LeftCard = strings.TrimSpace(LeftCard)
+								//myCards.removeCard(Left2Card)
+								//myCards.removeCard(LeftCard)
+								//myCards.SortCard()
+								newcc = "Finish Chi 2"
+								mingcardamount++
+								fmt.Println("{mingcardamount}", mingcardamount)
+								dialogWindow.Hide()
 							})
 							cancelbutton := widget.NewButton("Cancel", func() {
 								dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-								(*chiwindow).Close()
+								newcc = "Cancel Chi"
+								dialogWindow.Hide()
 							})
 
 							for _, MingPos := range mingcard[1:] {
@@ -238,8 +265,8 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 								}
 							}
 							container := container.NewHBox(button0, button1, button2, cancelbutton)
-							(*chiwindow).SetContent(container)
-							(*chiwindow).Show()
+							dialogWindow = dialog.NewCustomWithoutButtons("Chi", container, fyne.CurrentApp().Driver().AllWindows()[0])
+							dialogWindow.Show()
 						default:
 							fmt.Println("Received message:", string(msg.Frames[0]))
 							newcc = strings.TrimSpace(string(msg.Frames[0]))

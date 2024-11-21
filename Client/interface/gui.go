@@ -75,12 +75,56 @@ func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 	fmt.Println("Tapped")
-	mingcard := strings.Split(receivedMessage, " ")
-	switch mingcard[0] {
+	received := strings.ToUpper(newcc)
+	switch received {
 	case "DRAW":
 		fmt.Println("Not your turn")
 		return
+	case "FINISH CHI 0":
+		myCards.removeCard(RightCard)
+		myCards.removeCard(Right2Card)
+		myCards.SortCard()
+		RightCard = ""
+		Right2Card = ""
 
+		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+		fmt.Println("Send:", sendname)
+		//myCards.Card = append(myCards.Card, newcc)
+		myCards.removeCard(sendname)
+		myCards.SortCard()
+		newcc = ""
+	case "FINISH CHI 1":
+		myCards.removeCard(LeftCard)
+		myCards.removeCard(RightCard)
+		myCards.SortCard()
+		LeftCard = ""
+		RightCard = ""
+
+		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+		fmt.Println("Send:", sendname)
+		//myCards.Card = append(myCards.Card, newcc)
+		myCards.removeCard(sendname)
+		myCards.SortCard()
+		newcc = ""
+	case "FINISH CHI 2":
+		myCards.removeCard(LeftCard)
+		myCards.removeCard(Left2Card)
+		myCards.SortCard()
+		LeftCard = ""
+		Left2Card = ""
+
+		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+		fmt.Println("Send:", sendname)
+		//myCards.Card = append(myCards.Card, newcc)
+		myCards.removeCard(sendname)
+		myCards.SortCard()
+		newcc = ""
 	default:
 		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
 		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
@@ -214,6 +258,24 @@ func updateGUI() {
 	top_bar.SetText("Top " + time.Now().Format("15:04:05"))
 	canvas.Refresh(top_bar)
 
+	bottom_bar = makeBanner_bottom_bar()
+	for c := 0; c < 14; c++ {
+		//fmt.Println("c:", c)
+		if c == 0 {
+			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
+			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+		} else if c == 13-mingcardamount*3 {
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(14-mingcardamount*3), GUI.Size().Height-sideWidth))
+			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+		} else {
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
+			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+		}
+	}
+	for i := 0; i < 14; i++ {
+		GUI.Objects[5+i] = bottom_bar[i]
+	}
+	//GUI.Objects[5] = bottom_bar[0]
 	bottom_bar = makeBanner_bottom_bar()
 	for c := 0; c < 14; c++ {
 		//fmt.Println("c:", c)
