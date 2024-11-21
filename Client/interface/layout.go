@@ -30,21 +30,19 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 
 	l.right_bar.Move(fyne.NewPos(size.Width-sideWidth, topHeight))
 	l.right_bar.Resize(fyne.NewSize(sideWidth, size.Height-topHeight))
-	/* for c := range l.bottom_bar {
+	for c := 0; c < 14; c++ {
+		//fmt.Println("c:", c)
 		if c == 0 {
-			l.bottom_bar[0].Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
-			l.bottom_bar[0].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
+			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
+			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+		} else if c == 13-mingcardamount*3 {
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(14-mingcardamount*3), GUI.Size().Height-sideWidth))
+			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		} else {
-			l.bottom_bar[c].Move(fyne.NewPos(sideWidth+(size.Width-sideWidth*2)/13*((float32)(c))-(float32(15))*float32(c), size.Height-sideWidth))
-			l.bottom_bar[c].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
+			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		}
-	} */
-
-	/* l.bottom_bar[0].Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
-	l.bottom_bar[0].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth))
-
-	l.bottom_bar[1].Move(fyne.NewPos(sideWidth+(size.Width-sideWidth*2)/13, size.Height-sideWidth))
-	l.bottom_bar[1].Resize(fyne.NewSize((size.Width-sideWidth*2)/13, sideWidth)) */
+	}
 
 	l.content.Move(fyne.NewPos(size.Width/3+sideWidth/3, (topHeight*2+sideWidth+size.Height)/3))
 	l.content.Resize(fyne.NewSize((size.Width-sideWidth*2)/3, (size.Height-topHeight-sideWidth*2)/3))

@@ -126,19 +126,40 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 						// 逆時針標記其他玩家的位置
 						playerPositions = make(map[int]string)
 
-						rightPlayer := (myPosition + 1) % 4
-						frontPlayer := (myPosition + 2) % 4
-						leftPlayer := (myPosition + 3) % 4
+						var relativePos [4]int
+
+						// 逆時針標記其他玩家的位置
+						relativePos[0] = myPosition           // 自己的位置
+						relativePos[1] = (myPosition + 1) % 4 // 右邊的玩家
+						relativePos[2] = (myPosition + 2) % 4 // 對面的玩家
+						relativePos[3] = (myPosition + 3) % 4 // 左邊的玩家
+
+						var AbsPos [4]string
+
+						for i := range relativePos {
+							j := (myPosition + i) % 4
+							switch j {
+							case 0:
+								AbsPos[i] = "東"
+							case 1:
+								AbsPos[i] = "南"
+							case 2:
+								AbsPos[i] = "西"
+							case 3:
+								AbsPos[i] = "北"
+							}
+						}
 
 						for playerID, position := range pos.Pos {
 							playerPositions[position] = playerID
 						}
 
 						// 打印玩家位置
-						grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[frontPlayer] // 對面的玩家
-						grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[leftPlayer]  // 左邊的玩家
-						grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[rightPlayer] // 右邊的玩家
-						grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Text = ID                           // 自己的位置
+						grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[relativePos[2]] + AbsPos[2] // 對面的玩家
+						grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[relativePos[3]] + AbsPos[3] // 左邊的玩家
+						grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[relativePos[1]] + AbsPos[1] // 右邊的玩家
+						grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Text = playerPositions[relativePos[0]] + AbsPos[0] // 自己的位置
+						grid.Objects[4].(*fyne.Container).Objects[0].(*canvas.Text).Text = "東一局 0本場"
 
 						msg, _ = dealer.Recv()
 						fmt.Println("Received message:", string(msg.Frames[0]))

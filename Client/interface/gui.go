@@ -245,6 +245,15 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
 
+	// 修改 grid 中所有 canvas.Text 的 TextSize
+	for _, obj := range grid.Objects {
+		if center, ok := obj.(*fyne.Container); ok {
+			if text, ok := center.Objects[0].(*canvas.Text); ok {
+				text.TextSize = 20 // 設置你想要的字體大小
+			}
+		}
+	}
+
 	dividers := [5]fyne.CanvasObject{
 		widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(),
 	}
@@ -276,8 +285,8 @@ func updateGUI() {
 		GUI.Objects[5+i] = bottom_bar[i]
 	}
 	//GUI.Objects[5] = bottom_bar[0]
-	bottom_bar = makeBanner_bottom_bar()
-	for c := 0; c < 14; c++ {
+	//bottom_bar = makeBanner_bottom_bar()
+	/* for c := 0; c < 14; c++ {
 		//fmt.Println("c:", c)
 		if c == 0 {
 			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
@@ -292,7 +301,7 @@ func updateGUI() {
 	}
 	for i := 0; i < 14; i++ {
 		GUI.Objects[5+i] = bottom_bar[i]
-	}
+	} */
 	//GUI.Objects[5] = bottom_bar[0]
 
 	//GUI.Objects[18] = new_card
