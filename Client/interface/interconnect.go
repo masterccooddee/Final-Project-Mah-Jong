@@ -137,6 +137,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 						msg, _ = dealer.Recv()
 						fmt.Println("Received message:", string(msg.Frames[0]))
 						newcc = string(msg.Frames[0])
+						updateGUI()
 					} else {
 						cardthrow := strings.Split(receivedMessage, " ")
 
@@ -243,8 +244,11 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 							fmt.Println("Received message:", string(msg.Frames[0]))
 							newcc = strings.TrimSpace(string(msg.Frames[0]))
 						}
+						updateGUI()
 					}
+					updateGUI()
 				}
+
 			}
 		} else {
 			//fmt.Println("Login failed")

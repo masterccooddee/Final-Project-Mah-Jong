@@ -210,30 +210,29 @@ func makeGUI() *fyne.Container {
 }
 
 func updateGUI() {
-	for range time.Tick(3 * time.Second) {
-		top_bar.SetText("Top " + time.Now().Format("15:04:05"))
-		canvas.Refresh(top_bar)
 
-		bottom_bar = makeBanner_bottom_bar()
-		for c := 0; c < 14; c++ {
-			//fmt.Println("c:", c)
-			if c == 0 {
-				bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
-				bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-			} else if c == 13 {
-				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*14, GUI.Size().Height-sideWidth))
-				bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-			} else {
-				bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
-				bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-			}
+	top_bar.SetText("Top " + time.Now().Format("15:04:05"))
+	canvas.Refresh(top_bar)
+
+	bottom_bar = makeBanner_bottom_bar()
+	for c := 0; c < 14; c++ {
+		//fmt.Println("c:", c)
+		if c == 0 {
+			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
+			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+		} else if c == 13 {
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*14, GUI.Size().Height-sideWidth))
+			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
+		} else {
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
+			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		}
-		for i := 0; i < 14; i++ {
-			GUI.Objects[5+i] = bottom_bar[i]
-		}
-		//GUI.Objects[5] = bottom_bar[0]
-
-		//GUI.Objects[18] = new_card
-
 	}
+	for i := 0; i < 14; i++ {
+		GUI.Objects[5+i] = bottom_bar[i]
+	}
+	//GUI.Objects[5] = bottom_bar[0]
+
+	//GUI.Objects[18] = new_card
+
 }
