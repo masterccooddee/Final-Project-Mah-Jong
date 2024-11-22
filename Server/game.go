@@ -87,7 +87,7 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 		if po || g || c {
 			count++
 			msgcomb = strings.TrimRight(msgcomb, ",")
-			sendtoplayer(msgcomb, player.ID)
+			sendtoplayer(msgcomb, p.ID)
 		}
 		po, g, c = false, false, false
 		msgcomb = ""
