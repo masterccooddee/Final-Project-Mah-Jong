@@ -80,7 +80,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 	case "DRAW":
 		fmt.Println("Not your turn")
 		return
-	case "FINISH CHI 0":
+	/* case "FINISH CHI 0":
 		myCards.removeCard(RightCard)
 		myCards.removeCard(Right2Card)
 		myCards.SortCard()
@@ -124,7 +124,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 		//myCards.Card = append(myCards.Card, newcc)
 		myCards.removeCard(sendname)
 		myCards.SortCard()
-		newcc = ""
+		newcc = "" */
 	default:
 		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
 		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
