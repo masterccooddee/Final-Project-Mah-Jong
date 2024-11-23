@@ -434,9 +434,9 @@ func (r *Room) startgame(ctx context.Context) {
 
 						now = pos
 						for _, p := range r.Players {
-
-							sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
-
+							if p.ID != r.Players[now].ID {
+								sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
+							}
 						}
 						continue
 					}
@@ -453,9 +453,9 @@ func (r *Room) startgame(ctx context.Context) {
 						now = pos
 
 						for _, p := range r.Players {
-
-							sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
-
+							if p.ID != r.Players[now].ID {
+								sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
+							}
 						}
 						continue
 					}
@@ -482,9 +482,9 @@ func (r *Room) startgame(ctx context.Context) {
 
 						now = pos
 						for _, p := range r.Players {
-
-							sendtoplayer("True Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
-
+							if p.ID != r.Players[now].ID {
+								sendtoplayer("True Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
+							}
 						}
 						continue
 					}
