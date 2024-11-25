@@ -78,27 +78,27 @@ func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
+	// received := strings.ToUpper(newcc)
+	// if received == "DRAW" {
+	// 	fmt.Println("Not your turn")
+	// 	return
+	// }
+
+	// tap_item = append(tap_item, i)
+	// win_size = append(win_size, GUI.Size())
+	// if tpapped_time > 0 {
+
+	// 	if tap_item[0].Position().X != tap_item[1].Position().X {
+	// 		tpapped_time = 0
+	// 		tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
+	// 		tap_item = tap_item[1:]
+
+	// 	}
+	// }
+	// fmt.Println("Tapped")
+	// tpapped_time++
+
 	received := strings.ToUpper(newcc)
-	if received == "DRAW" {
-		fmt.Println("Not your turn")
-		return
-	}
-
-	tap_item = append(tap_item, i)
-	win_size = append(win_size, GUI.Size())
-	if tpapped_time > 0 {
-
-		if tap_item[0].Position().X != tap_item[1].Position().X {
-			tpapped_time = 0
-			tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
-			tap_item = tap_item[1:]
-
-		}
-	}
-	fmt.Println("Tapped")
-	tpapped_time++
-
-	//received := strings.ToUpper(newcc)
 	switch received {
 	case "DRAW":
 		fmt.Println("Not your turn")
@@ -149,24 +149,24 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 		myCards.SortCard()
 		newcc = "" */
 	default:
-		if tpapped_time == 1 {
-			i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		}
-		if tpapped_time == 2 {
-			i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
-			sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+		// if tpapped_time == 1 {
+		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+		// }
+		// if tpapped_time == 2 {
+		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
+		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
 
-			myCards.removeCard(sendname)
-			myCards.SortCard()
-			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-			fmt.Println("Send:", sendname)
-			//myCards.Card = append(myCards.Card, newcc)
-			updateGUI()
-			GUI.Refresh()
+		myCards.removeCard(sendname)
+		myCards.SortCard()
+		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+		fmt.Println("Send:", sendname)
+		//myCards.Card = append(myCards.Card, newcc)
+		updateGUI()
+		GUI.Refresh()
 
-			newcc = ""
-			tpapped_time = 0
-		}
+		newcc = ""
+		//tpapped_time = 0
+		//}
 	}
 	//} else {
 	//	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+10))
