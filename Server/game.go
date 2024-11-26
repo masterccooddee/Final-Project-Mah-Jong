@@ -15,6 +15,7 @@ import (
 )
 
 var router zmq4.Socket
+var selftouch bool
 
 var (
 	order = map[string]int{
@@ -31,6 +32,7 @@ type Position struct {
 }
 
 var zmqmu sync.Mutex
+var pos_history []int
 
 func sendtoplayer(msg string, ID string) {
 	msgout := zmq4.NewMsgFrom([]byte(ID), []byte(msg))
@@ -211,6 +213,46 @@ func (p *Player) HasCard(cardkind string, cardValue int) bool {
 
 }
 
+func (r *Room) endgame(now int) {
+	var getpoint int
+	if r.Players[now].Position == 0 {
+		if selftouch {
+			getpoint = 300*r.bunround + 3000
+			r.Players[now].Point += getpoint
+			for i, _ := range r.Players {
+				if i != now {
+					r.Players[i].Point -= getpoint / 3
+				}
+			}
+		} else {
+			getpoint = 300*r.bunround + 1000
+			r.Players[now].Point += getpoint
+			r.Players[pos_history[0]].Point -= getpoint
+		}
+
+		r.bunround++
+		r.round--
+	} else {
+		if selftouch {
+			getpoint = 300*r.bunround + 1500
+			r.Players[now].Point += getpoint
+			for i, _ := range r.Players {
+				if i != now {
+					if i == 0 {
+						r.Players[i].Point -= getpoint / 2
+					} else {
+						r.Players[i].Point -= getpoint / 4
+					}
+				}
+			}
+		} else {
+			getpoint = 300*r.bunround + 300
+			r.Players[now].Point += getpoint
+			r.Players[pos_history[0]].Point -= getpoint
+		}
+	}
+}
+
 func makeFromSlice(sl []string) []string {
 	result := make([]string, len(sl))
 	copy(result, sl)
@@ -271,6 +313,7 @@ func (r *Room) startgame(ctx context.Context) {
 		}
 
 		now = 0
+		pos_history = append(pos_history, now)
 
 		num := len(r.Cardset.Card)
 		r.lastcard = num - 14
@@ -304,13 +347,28 @@ func (r *Room) startgame(ctx context.Context) {
 						}
 					}
 
+					var selfmsg string
 					//有沒有辦法胡牌、槓牌
+					if isWinningHand(MaoToHand(&r.Players[now].Ma)) {
+						//胡牌
+						selfmsg += "Hu " + r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1] + ","
+
+					}
 					if canGangself(r.Players[now], r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) || r.Players[now].HasPong(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]) {
 						//槓牌
-						sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
+						selfmsg += "Gang " + r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1] + ","
+
+					}
+
+					if selfmsg != "" {
+						selfmsg = strings.TrimRight(selfmsg, ",")
+						sendtoplayer(selfmsg, r.Players[now].ID)
 
 						getcard := strings.TrimSpace(<-r.recvchan)
 						getslice := strings.Split(getcard, " ")
+						if getslice[1] == "Cancel" {
+							goto nottaken
+						}
 						for r.Players[now].ID != getslice[0] {
 							getcard = strings.TrimSpace(<-r.recvchan)
 							getslice = strings.Split(getcard, " ")
@@ -335,11 +393,18 @@ func (r *Room) startgame(ctx context.Context) {
 								}
 							}
 							continue
+						} else if getcard == "Hu" {
+							selftouch = true
+							r.endgame(now)
+							selftouch = false
+							goto nextround
 						}
+
 					}
 
 				}
 				//接收玩家出的牌
+			nottaken:
 				outcard := strings.TrimSpace(<-r.recvchan)
 				outcardslice := strings.Split(outcard, " ")
 				for r.Players[now].ID != outcardslice[0] {
@@ -433,6 +498,9 @@ func (r *Room) startgame(ctx context.Context) {
 						hGang = true
 
 						now = pos
+						pos_history = pos_history[1:]
+						pos_history = append(pos_history, now)
+
 						for _, p := range r.Players {
 							if p.ID != r.Players[now].ID {
 								sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
@@ -451,6 +519,8 @@ func (r *Room) startgame(ctx context.Context) {
 						r.Players[pos].Pong[outcard] = struct{}{}
 
 						now = pos
+						pos_history = pos_history[1:]
+						pos_history = append(pos_history, now)
 
 						for _, p := range r.Players {
 							if p.ID != r.Players[now].ID {
@@ -481,6 +551,9 @@ func (r *Room) startgame(ctx context.Context) {
 						r.Players[pos].Ma.splitCard()
 
 						now = pos
+						pos_history = pos_history[1:]
+						pos_history = append(pos_history, now)
+
 						for _, p := range r.Players {
 							if p.ID != r.Players[now].ID {
 								sendtoplayer("True Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
@@ -494,9 +567,14 @@ func (r *Room) startgame(ctx context.Context) {
 				ming = nil
 
 				now = (now + 1) % 4
+				pos_history = pos_history[1:]
+				pos_history = append(pos_history, now)
 			}
-
+		nextround:
 			now = 0
+			pos_history = nil
+			pos_history = append(pos_history, now)
+
 			r.Players = append(r.Players[1:], r.Players[0])
 			r.Cardset = mao{}
 			r.Cardset.addCard()
