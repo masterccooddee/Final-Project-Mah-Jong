@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -398,7 +397,7 @@ func hasAnko(hand Hand) bool {
 	}
 } */
 
-func main() {
+/* func main() {
 
 	hand := Hand{
 		Tiles: []Tile{
@@ -424,4 +423,4 @@ func main() {
 	} else {
 		fmt.Println("這手牌不能胡")
 	}
-}
+} */
