@@ -23,10 +23,13 @@ func UI() {
 	w.Resize(fyne.NewSize(1024, 600))
 
 	GUI = makeGUI()
-	go updateGUI()
 	w.SetContent(GUI)
 
 	w.CenterOnScreen()
+	w.SetOnClosed(func() {
+		conn.Write([]byte("LOGOUT"))
+	})
+	defer w.Close()
 
 	x := a.NewWindow("Login or Register")
 	x.Resize(fyne.NewSize(300, 100))
