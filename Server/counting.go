@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -11,8 +10,11 @@ type Tile struct {
 }
 
 type Hand struct {
-	Tiles   []Tile
-	WinTile Tile
+	Tiles    []Tile
+	WinTile  Tile
+	Melded   bool
+	Ready    bool
+	Declared bool
 }
 
 type Yaku struct {
@@ -27,10 +29,152 @@ type HandResult struct {
 	IsWinning bool
 }
 
-// ************************************************胡牌判定************************************************
+var tile_name = map[string]Tile{
+	"w1": Tile{Suit: "萬", Value: 1},
+	"w2": Tile{Suit: "萬", Value: 2},
+	"w3": Tile{Suit: "萬", Value: 3},
+	"w4": Tile{Suit: "萬", Value: 4},
+	"w5": Tile{Suit: "萬", Value: 5},
+	"w6": Tile{Suit: "萬", Value: 6},
+	"w7": Tile{Suit: "萬", Value: 7},
+	"w8": Tile{Suit: "萬", Value: 8},
+	"w9": Tile{Suit: "萬", Value: 9},
+	"t1": Tile{Suit: "筒", Value: 1},
+	"t2": Tile{Suit: "筒", Value: 2},
+	"t3": Tile{Suit: "筒", Value: 3},
+	"t4": Tile{Suit: "筒", Value: 4},
+	"t5": Tile{Suit: "筒", Value: 5},
+	"t6": Tile{Suit: "筒", Value: 6},
+	"t7": Tile{Suit: "筒", Value: 7},
+	"t8": Tile{Suit: "筒", Value: 8},
+	"t9": Tile{Suit: "筒", Value: 9},
+	"l1": Tile{Suit: "條", Value: 1},
+	"l2": Tile{Suit: "條", Value: 2},
+	"l3": Tile{Suit: "條", Value: 3},
+	"l4": Tile{Suit: "條", Value: 4},
+	"l5": Tile{Suit: "條", Value: 5},
+	"l6": Tile{Suit: "條", Value: 6},
+	"l7": Tile{Suit: "條", Value: 7},
+	"l8": Tile{Suit: "條", Value: 8},
+	"l9": Tile{Suit: "條", Value: 9},
+	"1":  Tile{Suit: "字", Value: 1},
+	"2":  Tile{Suit: "字", Value: 2},
+	"3":  Tile{Suit: "字", Value: 3},
+	"4":  Tile{Suit: "字", Value: 4},
+	"5":  Tile{Suit: "字", Value: 5},
+	"6":  Tile{Suit: "字", Value: 6},
+	"7":  Tile{Suit: "字", Value: 7},
+}
+
+var mao_name = map[Tile]string{
+	Tile{Suit: "萬", Value: 1}: "w1",
+	Tile{Suit: "萬", Value: 2}: "w2",
+	Tile{Suit: "萬", Value: 3}: "w3",
+	Tile{Suit: "萬", Value: 4}: "w4",
+	Tile{Suit: "萬", Value: 5}: "w5",
+	Tile{Suit: "萬", Value: 6}: "w6",
+	Tile{Suit: "萬", Value: 7}: "w7",
+	Tile{Suit: "萬", Value: 8}: "w8",
+	Tile{Suit: "萬", Value: 9}: "w9",
+	Tile{Suit: "筒", Value: 1}: "t1",
+	Tile{Suit: "筒", Value: 2}: "t2",
+	Tile{Suit: "筒", Value: 3}: "t3",
+	Tile{Suit: "筒", Value: 4}: "t4",
+	Tile{Suit: "筒", Value: 5}: "t5",
+	Tile{Suit: "筒", Value: 6}: "t6",
+	Tile{Suit: "筒", Value: 7}: "t7",
+	Tile{Suit: "筒", Value: 8}: "t8",
+	Tile{Suit: "筒", Value: 9}: "t9",
+	Tile{Suit: "條", Value: 1}: "l1",
+	Tile{Suit: "條", Value: 2}: "l2",
+	Tile{Suit: "條", Value: 3}: "l3",
+	Tile{Suit: "條", Value: 4}: "l4",
+	Tile{Suit: "條", Value: 5}: "l5",
+	Tile{Suit: "條", Value: 6}: "l6",
+	Tile{Suit: "條", Value: 7}: "l7",
+	Tile{Suit: "條", Value: 8}: "l8",
+	Tile{Suit: "條", Value: 9}: "l9",
+	Tile{Suit: "字", Value: 1}: "1",
+	Tile{Suit: "字", Value: 2}: "2",
+	Tile{Suit: "字", Value: 3}: "3",
+	Tile{Suit: "字", Value: 4}: "4",
+	Tile{Suit: "字", Value: 5}: "5",
+	Tile{Suit: "字", Value: 6}: "6",
+	Tile{Suit: "字", Value: 7}: "7",
+}
+
+func MaoToHand(m *mao) Hand {
+	var hand Hand
+	for _, tile := range m.Card {
+		hand.Tiles = append(hand.Tiles, tile_name[tile])
+	}
+	return hand
+}
+
+func HandToMao(hand *Hand) mao {
+	var m mao
+	for _, tile := range hand.Tiles {
+		m.Card = append(m.Card, mao_name[tile])
+	}
+	return m
+}
+
+// ***********************************************聽牌判定************************************************
+func checkTenpai(hand Hand) ([]Tile, bool) {
+	var winningTiles []Tile
+	var ready bool
+	uniqueTiles := generateAllTiles() // 產生所有可能的麻將牌
+
+	for _, tile := range uniqueTiles {
+		hand.Tiles = append(hand.Tiles, tile)
+		if isWinningHand(hand) {
+			winningTiles = append(winningTiles, tile)
+			ready = true
+		}
+		hand.Tiles = hand.Tiles[:len(hand.Tiles)-1] // 移除模擬的牌
+	}
+
+	return winningTiles, ready
+}
+
+// 產生所有可能的麻將牌
+func generateAllTiles() []Tile {
+	var tiles []Tile
+	suits := []string{"萬", "筒", "條"}
+	for _, suit := range suits {
+		for value := 1; value <= 9; value++ {
+			tiles = append(tiles, Tile{Suit: suit, Value: value})
+		}
+	}
+	honorValues := []int{1, 2, 3, 4, 5, 6, 7} // 東南西北白發中
+	for _, value := range honorValues {
+		tiles = append(tiles, Tile{Suit: "字", Value: value})
+	}
+	return tiles
+}
+
+// ***********************************************胡牌判定***********************************************
 func isWinningHand(hand Hand) bool {
 	// 檢查是否符合 4 面子 + 1 將的結構
 	return checkForMentsuAndPair(hand)
+}
+
+// 檢查7對子
+func checkSevenPairs(tiles []Tile) bool {
+	if len(tiles) != 14 {
+		return false
+	}
+
+	pairs := 0
+	for i := 0; i < len(tiles)-1; i += 2 {
+		if tiles[i] == tiles[i+1] {
+			pairs++
+		} else {
+			return false
+		}
+	}
+
+	return pairs == 7
 }
 
 // 檢查是否有 4 個面子 + 1 將的輔助函數
@@ -50,6 +194,12 @@ func checkForMentsuAndPair(hand Hand) bool {
 		}
 		return tiles[i].Suit < tiles[j].Suit
 	})
+
+	for i := 0; i < len(tiles)-1; i += 2 {
+		if tiles[i] == tiles[i+1] {
+			return true
+		}
+	}
 
 	for i := 0; i < len(tiles)-2; i++ {
 		if tiles[i] == tiles[i+1] {
@@ -139,9 +289,9 @@ func removeTiles(tiles, toRemove []Tile) []Tile {
 	return result
 }
 
-// ************************************************飜數判定************************************************
-//1番：reach(立直) fully_conceal(門清) unbroken(一發) all_inside(斷么九) pinfu(平和) twin_seq(一盃口) honor(場風/自風/中發白)
-//2番：double_reach(天聽) seven_pair(七對子) full_straight(一氣通貫) mixed_seq(三色同順)
+// ***********************************************飜數判定***********************************************
+//1番：riichi(立直) fully_conceal(門清) unbroken(一發) all_inside(斷么九) pinfu(平和) twin_seq(一盃口) honor(場風/自風/中發白)
+//2番：double_riichi(天聽) seven_pair(七對子) full_straight(一氣通貫) mixed_seq(三色同順)
 //3番：
 //6番：
 //役滿：
@@ -169,10 +319,45 @@ func isPinfu(hand Hand) bool {
 	// 實際檢查平和的判斷邏輯
 	return true // 替換為實際邏輯
 }
+*/
+func isRiichi(player *Player, discarded Tile) bool {
+	// 條件 1：不能有副露
+	var Melded, Ready, Declared bool
+	for _, tile := range player.Ma.Card {
+		if player.HasChi(tile) || player.HasPong(tile) || player.HasGang(tile) {
+			Melded = true
+			break
+		}
+	}
+	if Melded {
+		return false
+	}
+	// 條件 2：必須處於聽牌狀態
+	// 聽雀頭
 
-func is
+	// 聽刻子
 
-// ************************************************符數判定************************************************
+	// 聽順子
+	// 聽兩邊
+
+	// 聽中間
+	if !Ready {
+		return false
+	}
+	// 條件 3：立直必須在打出牌後
+	if discarded == (Tile{}) {
+		return false
+	}
+	// 條件 4：不能改變手牌
+	if Declared {
+		return false
+	}
+	// 所有條件滿足
+	return true
+}
+
+/*
+// ***********************************************符數判定***********************************************
 func calculateFu(hand Hand) int {
 	fu := 20 // 胡牌基礎符數為 20 符
 
@@ -190,8 +375,9 @@ func hasAnko(hand Hand) bool {
 	return false // 替換為實際邏輯
 } */
 
-// ************************************************判定結果************************************************
+// ***********************************************判定結果***********************************************
 /* func calculateHandResult(hand Hand) HandResult {
+	var hand := MaoToHand(player.Ma)
 	isWinning := isWinningHand(hand)
 
 	if !isWinning {
@@ -211,7 +397,8 @@ func hasAnko(hand Hand) bool {
 	}
 } */
 
-func mmm() {
+/* func main() {
+
 	hand := Hand{
 		Tiles: []Tile{
 			{Suit: "萬", Value: 1},
@@ -236,4 +423,4 @@ func mmm() {
 	} else {
 		fmt.Println("這手牌不能胡")
 	}
-}
+} */
