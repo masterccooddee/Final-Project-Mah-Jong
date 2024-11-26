@@ -188,7 +188,8 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										myCards.removeCard(mingcard[1])
 										myCards.removeCard(mingcard[1])
 										myCards.SortCard()
-										return
+										newcc = "Finish Gang"
+										updateGUI()
 									}
 									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
 								}, fyne.CurrentApp().Driver().AllWindows()[0])
@@ -205,7 +206,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										myCards.removeCard(mingcard[1])
 										myCards.removeCard(mingcard[1])
 										myCards.SortCard()
-										//newcc = "Finish Pong"
+										newcc = "Finish Pong"
 										mingcardamount++
 										fmt.Println("{mingcardamount}", mingcardamount)
 										updateGUI()
@@ -213,7 +214,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
 									}
 								}, fyne.CurrentApp().Driver().AllWindows()[0])
-							}
+							} else if len(mingcard) == 4
 						case "CHI":
 							var dialogWindow *dialog.CustomDialog
 
@@ -236,7 +237,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										myCards.removeCard(RightCard)
 										myCards.removeCard(Right2Card)
 										myCards.SortCard()
-										//newcc = "Finish Chi 0"
+										newcc = "Finish Chi 0"
 										mingcardamount++
 										fmt.Println("{mingcardamount}", mingcardamount)
 										dialogWindow.Hide()
@@ -249,7 +250,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										myCards.removeCard(LeftCard)
 										myCards.removeCard(RightCard)
 										myCards.SortCard()
-										//newcc = "Finish Chi 1"
+										newcc = "Finish Chi 1"
 										mingcardamount++
 										fmt.Println("{mingcardamount}", mingcardamount)
 										dialogWindow.Hide()
@@ -262,7 +263,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										myCards.removeCard(Left2Card)
 										myCards.removeCard(LeftCard)
 										myCards.SortCard()
-										//newcc = "Finish Chi 2"
+										newcc = "Finish Chi 2"
 										mingcardamount++
 										fmt.Println("{mingcardamount}", mingcardamount)
 										dialogWindow.Hide()
@@ -270,7 +271,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 									})
 									cancelbutton := widget.NewButton("Cancel", func() {
 										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-										//newcc = "Cancel Chi"
+										newcc = "Cancel Chi"
 										dialogWindow.Hide()
 										updateGUI()
 									})
