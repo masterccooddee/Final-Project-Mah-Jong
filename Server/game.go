@@ -51,7 +51,7 @@ func (r *Room) sendtoall(msg string) {
 // 除了now player之外的玩家能不能鳴牌
 func (r *Room) MingCard(player *Player, card string, now int) (count int) { //count 有幾個人能鳴牌
 	// 判斷是否有人能鳴牌
-	var po, g, c bool
+	var po, g, c, h bool
 	var msgcomb string
 
 	for _, p := range r.Players {
@@ -86,130 +86,28 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 			c = true
 		}
 
-		if po || g || c {
+		if isWinningHand(MaoToHand(&p.Ma)) {
+			msgcomb += "Hu " + card + ","
+			h = true
+
+		}
+
+		if po || g || c || h {
 			count++
 			msgcomb = strings.TrimRight(msgcomb, ",")
 			sendtoplayer(msgcomb, p.ID)
 		}
-		po, g, c = false, false, false
+		po, g, c, h = false, false, false, false
 		msgcomb = ""
 
 	}
 	return count
 }
 
-func canPong(player *Player, card string) bool {
-	count := 0
-	for _, c := range player.Ma.Card {
-		if c == card {
-			count++
-		}
-	}
-	return count >= 2
-}
-
-func canGang(player *Player, card string) bool {
-	count := 0
-	for _, c := range player.Ma.Card {
-		if c == card {
-			count++
-		}
-	}
-	return count == 3
-}
-
-func canGangself(player *Player, card string) bool {
-	count := 0
-	for _, c := range player.Ma.Card {
-		if c == card {
-			count++
-		}
-	}
-	return count == 4
-}
-
-func canChi(player *Player, card string) (combinations []string) {
-	// 假設牌是按順序存儲的
-	// 需要判斷是否有連續的三張牌
-	// 例如: card 是 3, 需要判斷是否有 1, 2 或 2, 4 或 4, 5
-
-	if _, exist := player.Ma.Word[card]; exist {
-		return nil
-	}
-
-	cardkind := string(card[0])
-	cardvalue, _ := strconv.Atoi(card[1:])
-
-	// 4, 5
-	if cardvalue < 8 {
-		if player.HasCard(cardkind, cardvalue+1) && player.HasCard(cardkind, cardvalue+2) {
-			combinations = append(combinations, "0")
-
-		}
-
-	}
-
-	// 2, 4
-	if cardvalue > 1 && cardvalue < 9 {
-		if player.HasCard(cardkind, cardvalue-1) && player.HasCard(cardkind, cardvalue+1) {
-			combinations = append(combinations, "1")
-		}
-
-	}
-
-	// 1, 2
-	if cardvalue > 2 {
-		if player.HasCard(cardkind, cardvalue-2) && player.HasCard(cardkind, cardvalue-1) {
-			combinations = append(combinations, "2")
-		}
-
-	}
-	return combinations
-
-}
-
 func isNextPlayer(player *Player, now int) bool {
 	// 判斷是否為下家
 	// 假設玩家順序存儲在 r.Players 中
 	return player.Position == (now+1)%4
-
-}
-
-func (p *Player) HasPong(card string) bool {
-	// 判斷是否有碰過該牌
-	_, exist := p.Pong[card]
-	return exist
-}
-
-func (p *Player) HasChi(card string) bool {
-	// 判斷是否有吃過該牌
-	_, exist := p.Chi[card]
-	return exist
-}
-
-func (p *Player) HasGang(card string) bool {
-	// 判斷是否有槓過該牌
-	_, exist := p.Gang[card]
-	return exist
-}
-
-func (p *Player) HasCard(cardkind string, cardValue int) bool {
-	// 判斷是否有該牌
-
-	switch cardkind {
-	case "w":
-		_, exist := p.Ma.Wan[cardValue]
-		return exist
-	case "t":
-		_, exist := p.Ma.Tong[cardValue]
-		return exist
-	case "l":
-		_, exist := p.Ma.Tiao[cardValue]
-		return exist
-	default:
-		_, exist := p.Ma.Word[cardkind]
-		return exist
-	}
 
 }
 
@@ -250,6 +148,9 @@ func (r *Room) endgame(now int) {
 			r.Players[now].Point += getpoint
 			r.Players[pos_history[0]].Point -= getpoint
 		}
+	}
+	for _, p := range r.Players {
+		sendtoplayer("Round End,Point "+strconv.Itoa(p.Point), p.ID)
 	}
 }
 
@@ -482,8 +383,8 @@ func (r *Room) startgame(ctx context.Context) {
 					pos, _ := strconv.Atoi(msg[1])
 					if msg[0] == "Hu" {
 						//胡牌
-
-						break
+						r.endgame(pos)
+						goto nextround
 
 					}
 					if msg[0] == "Gang" {
@@ -516,6 +417,7 @@ func (r *Room) startgame(ctx context.Context) {
 							r.Players[pos].Ma.removeCard(outcard)
 						}
 						r.Players[pos].Ma.splitCard()
+						r.Players[pos].clean = false
 						r.Players[pos].Pong[outcard] = struct{}{}
 
 						now = pos
@@ -532,6 +434,7 @@ func (r *Room) startgame(ctx context.Context) {
 
 					if msg[0] == "Chi" {
 						hChi = true
+						r.Players[pos].clean = false
 
 						num, _ := strconv.Atoi(string(outcard[1]))
 						switch msg[2] {
@@ -594,6 +497,7 @@ func (r *Room) startgame(ctx context.Context) {
 			r.lastcard = num - 14
 			baocard = r.Cardset.Card[num-14:]
 			r.round++
+			r.sendtoall("Next round")
 
 		}
 
