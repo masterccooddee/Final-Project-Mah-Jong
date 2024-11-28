@@ -156,7 +156,7 @@ func generateAllTiles() []Tile {
 // ***********************************************胡牌判定***********************************************
 func isWinningHand(hand Hand) bool {
 	// 檢查是否符合 4 面子 + 1 將的結構
-	return checkForMentsuAndPair(hand)
+	return checkForMentsuAndPair(hand) || checkSevenPairs(hand.Tiles)
 }
 
 // 檢查7對子
@@ -177,7 +177,7 @@ func checkSevenPairs(tiles []Tile) bool {
 	return pairs == 7
 }
 
-// 檢查特殊牌型
+// 檢查特殊牌型（此處僅處理槓子）
 func checkGang(hand Hand) int {
 	pairs := 0
 	if len(hand.Tiles) > 14 {
@@ -189,19 +189,10 @@ func checkGang(hand Hand) int {
 	}
 
 	return pairs
-	// 2組槓
-
-	// 3組槓
-
-	// 4組槓
-
 }
 
-// 檢查是否有 4 個面子 + 1 將的輔助函數
+// 檢查是否有 4 個面子 + 1 將的輔助函式
 func checkForMentsuAndPair(hand Hand) bool {
-	// 這裡需要一個完整的面子拆解和配對的判定邏輯
-	// 因篇幅問題，這裡不詳細實現。
-	// 假設符合條件，返回 true；否則返回 false
 	tiles := hand.Tiles
 
 	if len(tiles) != 14 {
@@ -215,13 +206,7 @@ func checkForMentsuAndPair(hand Hand) bool {
 		return tiles[i].Suit < tiles[j].Suit
 	})
 
-	for i := 0; i < len(tiles)-1; i += 2 {
-		if tiles[i] == tiles[i+1] {
-			return true
-		}
-	}
-
-	for i := 0; i < len(tiles)-2; i++ {
+	for i := 0; i < len(tiles)-1; i++ {
 		if tiles[i] == tiles[i+1] {
 			remainingTiles := append([]Tile{}, tiles[:i]...)
 			remainingTiles = append(remainingTiles, tiles[i+2:]...)
@@ -231,7 +216,8 @@ func checkForMentsuAndPair(hand Hand) bool {
 			}
 		}
 	}
-	return false // 替換為實際邏輯
+
+	return false
 }
 
 func canFormMentsu(tiles []Tile) bool {
@@ -245,7 +231,7 @@ func canFormMentsu(tiles []Tile) bool {
 	// 如果是字牌，只能形成刻子
 	if isHonorTile(tiles[0]) {
 		if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
-			return canFormMentsu(tiles[3:]) // 若形成刻子則繼續遞迴
+			return canFormMentsu(tiles[3:])
 		}
 		return false // 無法形成有效面子
 	}
@@ -258,13 +244,10 @@ func canFormMentsu(tiles []Tile) bool {
 	}
 
 	// 對數牌嘗試用順子（例如 "1萬、2萬、3萬"）拆解
-	for i := 1; i < len(tiles)-1; i++ {
-		for j := i + 1; j < len(tiles); j++ {
-			if isSequential(tiles[0], tiles[i], tiles[j]) {
-				remainingTiles := removeTiles(tiles, []Tile{tiles[0], tiles[i], tiles[j]})
-				if canFormMentsu(remainingTiles) {
-					return true
-				}
+	if len(tiles) >= 3 {
+		if isSequential(tiles[0], tiles[1], tiles[2]) {
+			if canFormMentsu(tiles[3:]) {
+				return true
 			}
 		}
 	}
@@ -353,8 +336,7 @@ func isRiichi(player *Player, discarded Tile) bool {
 		return false
 	}
 	// 條件 2：必須處於聽牌狀態
-	_, tenpai := checkTenpai(MaoToHand(&player.Ma))
-	Ready = tenpai
+	_, Ready = checkTenpai(MaoToHand(&player.Ma))
 	if !Ready {
 		return false
 	}
@@ -370,8 +352,8 @@ func isRiichi(player *Player, discarded Tile) bool {
 	return true
 }
 
-/*
 // ***********************************************符數判定***********************************************
+/*
 func calculateFu(hand Hand) int {
 	fu := 20 // 胡牌基礎符數為 20 符
 
@@ -412,29 +394,29 @@ func hasAnko(hand Hand) bool {
 } */
 
 /* func main() {
-
-	hand := Hand{
-		Tiles: []Tile{
-			{Suit: "萬", Value: 1},
-			{Suit: "萬", Value: 1},
-			{Suit: "萬", Value: 2},
-			{Suit: "萬", Value: 2},
-			{Suit: "萬", Value: 3},
-			{Suit: "萬", Value: 3},
-			{Suit: "萬", Value: 4},
-			{Suit: "萬", Value: 4},
-			{Suit: "萬", Value: 5},
-			{Suit: "萬", Value: 5}, // 中
-			{Suit: "字", Value: 5}, // 中
-			{Suit: "字", Value: 5}, // 中
-			{Suit: "筒", Value: 2},
-			{Suit: "筒", Value: 2},
-		},
+	// 定義測試牌
+	testTiles := []Tile{
+		{Suit: "萬", Value: 1},
+		{Suit: "萬", Value: 8},
+		{Suit: "筒", Value: 1},
+		{Suit: "筒", Value: 2},
+		{Suit: "筒", Value: 2},
+		{Suit: "筒", Value: 2},
+		{Suit: "筒", Value: 2},
+		{Suit: "條", Value: 3},
+		{Suit: "條", Value: 5},
+		{Suit: "條", Value: 8},
+		{Suit: "條", Value: 9},
+		{Suit: "字", Value: 1},
+		{Suit: "字", Value: 3},
+		{Suit: "字", Value: 6},
 	}
 
+	hand := Hand{Tiles: testTiles}
+
 	if isWinningHand(hand) {
-		fmt.Println("這是一手可以胡的牌")
+		println("這是一手胡牌！")
 	} else {
-		fmt.Println("這手牌不能胡")
+		println("這不是一手胡牌。")
 	}
 } */
