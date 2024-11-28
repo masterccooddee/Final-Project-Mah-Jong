@@ -86,7 +86,8 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 			c = true
 		}
 
-		if isWinningHand(MaoToHand(&p.Ma)) {
+		hucard := p.checkcard()
+		if isWinningHand(MaoToHand(&hucard)) {
 			msgcomb += "Hu " + card + ","
 			h = true
 
@@ -214,6 +215,7 @@ func (r *Room) startgame(ctx context.Context) {
 		}
 
 		now = 0
+		r.now = now
 		pos_history = append(pos_history, now)
 
 		num := len(r.Cardset.Card)
@@ -250,7 +252,9 @@ func (r *Room) startgame(ctx context.Context) {
 
 					var selfmsg string
 					//有沒有辦法胡牌、槓牌
-					if isWinningHand(MaoToHand(&r.Players[now].Ma)) {
+
+					hucard := r.Players[now].checkcard()
+					if isWinningHand(MaoToHand(&hucard)) {
 						//胡牌
 						selfmsg += "Hu " + r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1] + ","
 
@@ -348,7 +352,13 @@ func (r *Room) startgame(ctx context.Context) {
 					for {
 						select {
 						case getcard = <-r.recvchan:
-							getcard = strings.TrimSpace(getcard)
+							getcardslice := strings.Split(getcard, " ")
+							if getcardslice[1] == "Cancel" {
+								continue
+							} else {
+								getcard = getcardslice[1] + " " + getcardslice[2] + " " + getcardslice[3]
+							}
+
 							ming = append(ming, getcard)
 							cnt--
 							if cnt == 0 {
@@ -399,6 +409,7 @@ func (r *Room) startgame(ctx context.Context) {
 						hGang = true
 
 						now = pos
+						r.now = now
 						pos_history = pos_history[1:]
 						pos_history = append(pos_history, now)
 
@@ -421,6 +432,7 @@ func (r *Room) startgame(ctx context.Context) {
 						r.Players[pos].Pong[outcard] = struct{}{}
 
 						now = pos
+						r.now = now
 						pos_history = pos_history[1:]
 						pos_history = append(pos_history, now)
 
@@ -454,6 +466,7 @@ func (r *Room) startgame(ctx context.Context) {
 						r.Players[pos].Ma.splitCard()
 
 						now = pos
+						r.now = now
 						pos_history = pos_history[1:]
 						pos_history = append(pos_history, now)
 
@@ -470,11 +483,13 @@ func (r *Room) startgame(ctx context.Context) {
 				ming = nil
 
 				now = (now + 1) % 4
+				r.now = now
 				pos_history = pos_history[1:]
 				pos_history = append(pos_history, now)
 			}
 		nextround:
 			now = 0
+			r.now = now
 			pos_history = nil
 			pos_history = append(pos_history, now)
 

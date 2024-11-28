@@ -214,7 +214,9 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
 									}
 								}, fyne.CurrentApp().Driver().AllWindows()[0])
-							} else if len(mingcard) == 4
+							} else if len(mingcard) == 4 {
+
+							}
 						case "CHI":
 							var dialogWindow *dialog.CustomDialog
 

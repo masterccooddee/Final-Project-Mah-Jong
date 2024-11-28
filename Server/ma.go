@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type mao struct {
@@ -212,4 +213,27 @@ func (p *Player) HasCard(cardkind string, cardValue int) bool {
 		return exist
 	}
 
+}
+
+func (p *Player) checkcard() (ma mao) {
+	ma = p.Ma
+	for k, _ := range p.Pong {
+		for i := 0; i < 3; i++ {
+			ma.Card = append(ma.Card, k)
+		}
+	}
+	for k, _ := range p.Chi {
+		cc := strings.Split(k, " ")
+		for _, v := range cc {
+			ma.Card = append(ma.Card, v)
+		}
+	}
+	for k, _ := range p.Gang {
+		for i := 0; i < 4; i++ {
+			ma.Card = append(ma.Card, k)
+		}
+	}
+	ma.SortCard()
+	ma.splitCard()
+	return
 }

@@ -295,12 +295,34 @@ func showroominfo(room_id int, roomtextview *tview.TextView) {
 			fmt.Fprintf(roomtextview, "[blue]局數：[reset]北%d局 %d本場\n\n", room.round, room.bunround)
 		}
 		fmt.Fprintf(roomtextview, "[blue]牌譜：[reset]\n%v\n", room.Cardset.Card)
-		fmt.Fprintf(roomtextview, "[blue]剩餘牌數：[reset]%d\n\n", room.lastcard)
+		fmt.Fprintf(roomtextview, "[blue]剩餘牌數：[reset]%d\n\n[blue]現在該出牌：[reset]%s\n\n", room.lastcard, room.Players[room.now].ID)
 		fmt.Fprint(roomtextview, "[blue]各家手牌：[reset]\n")
-		fmt.Fprintf(roomtextview, "東家：\n%v\n", room.Players[0].Ma.Card)
-		fmt.Fprintf(roomtextview, "南家：\n%v\n", room.Players[1].Ma.Card)
-		fmt.Fprintf(roomtextview, "西家：\n%v\n", room.Players[2].Ma.Card)
-		fmt.Fprintf(roomtextview, "北家：\n%v\n", room.Players[3].Ma.Card)
+		var chicard [4][]string
+		var pongcard [4][]string
+		var gangcard [4][]string
+		for _, p := range room.Players {
+			p.Ma.SortCard()
+			for k, _ := range p.Pong {
+				for i := 0; i < 3; i++ {
+					pongcard[p.Position] = append(pongcard[p.Position], k)
+				}
+			}
+			for k, _ := range p.Chi {
+				cc := strings.Split(k, " ")
+				for _, v := range cc {
+					chicard[p.Position] = append(chicard[p.Position], v)
+				}
+			}
+			for k, _ := range p.Gang {
+				for i := 0; i < 4; i++ {
+					gangcard[p.Position] = append(gangcard[p.Position], k)
+				}
+			}
+		}
+		fmt.Fprintf(roomtextview, "東家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[0].ID, room.Players[0].Ma.Card, chicard[0], pongcard[0], gangcard[0])
+		fmt.Fprintf(roomtextview, "南家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[1].ID, room.Players[1].Ma.Card, chicard[1], pongcard[1], gangcard[1])
+		fmt.Fprintf(roomtextview, "西家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[2].ID, room.Players[2].Ma.Card, chicard[2], pongcard[2], gangcard[2])
+		fmt.Fprintf(roomtextview, "北家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[3].ID, room.Players[3].Ma.Card, chicard[3], pongcard[3], gangcard[3])
 	}
 
 }
