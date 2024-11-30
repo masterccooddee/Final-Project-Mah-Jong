@@ -28,6 +28,7 @@ const (
 	WAITING_FOR_GET_OTHER_MING
 	WAITING_FOR_GET_SELF_MING
 	END_ROUND
+	WAITING_NEXT_ROUND
 )
 
 var press_button = make(chan bool)
@@ -145,6 +146,75 @@ func chi_button(cardorkind []string, card string) {
 	dialogWindow = dialog.NewCustomWithoutButtons("Chi", container, fyne.CurrentApp().Driver().AllWindows()[0])
 	dialogWindow.Show()
 
+}
+
+func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
+	var button []*widget.Button
+
+	for _, v := range mingset {
+		mingslice := strings.Split(v, " ")
+		cardorkind := strings.ToLower(mingslice[1])
+		switch mingslice[0] {
+		case "CHI":
+			button = append(button, widget.NewButton("吃", func() {
+				chi_button(mingslice[1:], nowdiscard)
+			}))
+
+		case "PONG":
+			button = append(button, widget.NewButton("碰", func() {
+				sendmessage := fmt.Sprintf("%s %d %s", "Pong", pos.Pos[ID], cardorkind)
+				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
+
+				action = WAITING_FOR_GET_OTHER_MING
+
+				selfming = false
+				press_button <- true
+				myCards.SortCard()
+				updateGUI()
+			}))
+
+		case "GANG":
+			button = append(button, widget.NewButton("槓", func() {
+				sendmessage := fmt.Sprintf("%s %d %s", "Gang", pos.Pos[ID], cardorkind)
+				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
+
+				action = WAITING_FOR_GET_OTHER_MING
+
+				press_button <- true
+				myCards.SortCard()
+				updateGUI()
+			}))
+
+		case "HU":
+			button = append(button, widget.NewButton("胡", func() {
+				sendmessage := fmt.Sprintf("%s %d %s", "Hu", pos.Pos[ID], cardorkind)
+				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
+
+				action = WAITING_FOR_GET_OTHER_MING
+
+				press_button <- true
+				updateGUI()
+			}))
+
+		}
+	}
+	cancelbutton := widget.NewButton("Cancel", func() {
+		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
+		if selfming {
+			action = DISCARD_CARD
+		} else {
+			action = WAITING_FOR_GET_OTHER_MING
+		}
+		selfming = false
+		press_button <- true
+		updateGUI()
+	})
+	var conobj []fyne.CanvasObject
+	for _, v := range button {
+		conobj = append(conobj, v)
+	}
+	conobj = append(conobj, cancelbutton)
+	return conobj
 }
 
 func behavior_handler() {
@@ -370,6 +440,8 @@ var throwcard = make(chan string)
 var nowdiscard string
 var selfming bool
 var putnewcard bool
+var mingset []string
+var point [4]string
 
 func behavior() {
 	action = GAME_START_WAIT
@@ -464,6 +536,8 @@ func behavior() {
 			} else {
 				mingchoose = msg
 				selfming = true
+				mingset = nil
+				mingset = append(mingset, strings.Split(mingchoose, ",")...)
 				action = CHOOSE_SELF_MING
 			}
 
@@ -498,6 +572,8 @@ func behavior() {
 				action = WAITING_FOR_GET_OTHER_MING
 			} else {
 				fmt.Println("CHECK_MING:", msg)
+				mingset = nil
+				mingset = append(mingset, strings.Split(mingchoose, ",")...)
 				ming := strings.Split(msg, ",")
 				for _, v := range ming {
 					mingslice := strings.Split(v, " ")
@@ -551,15 +627,18 @@ func behavior() {
 						myCards.SortCard()
 						updateGUI()
 
-						mingcardamount += 2
 					} else if strings.Contains(msg, "GANG") {
-						myCards.removeCard(cardorkind)
-						myCards.removeCard(cardorkind)
-						myCards.removeCard(cardorkind)
+						for _, card := range myCards.Card {
+							if strings.Contains(card, cardorkind) {
+								myCards.removeCard(card)
+							}
+						}
+
 						myCards.SortCard()
 						updateGUI()
+						action = DRAW_CARD
+						continue
 
-						mingcardamount += 3
 					} else if strings.Contains(msg, "CHI") {
 						cardkind := string(nowdiscard[0])
 						number, _ := strconv.Atoi(string(nowdiscard[1]))
@@ -569,31 +648,49 @@ func behavior() {
 							myCards.removeCard(cardkind + strconv.Itoa(number+2))
 							myCards.SortCard()
 							updateGUI()
-							mingcardamount += 2
-							fmt.Println("{mingcardamount}", mingcardamount)
 
 						case "1":
 							myCards.removeCard(cardkind + strconv.Itoa(number+1))
 							myCards.removeCard(cardkind + strconv.Itoa(number-1))
 							myCards.SortCard()
 							updateGUI()
-							mingcardamount += 2
-							fmt.Println("{mingcardamount}", mingcardamount)
 
 						case "2":
 							myCards.removeCard(cardkind + strconv.Itoa(number-2))
 							myCards.removeCard(cardkind + strconv.Itoa(number-1))
 							myCards.SortCard()
 							updateGUI()
-							mingcardamount += 2
-							fmt.Println("{mingcardamount}", mingcardamount)
 						}
+					} else if strings.Contains(msg, "HU") {
+						action = END_ROUND
+						continue
 					}
 					action = DISCARD_CARD
 				} else {
-					action = WAITING_FOR_GET_DISCARD_CARD
+					if strings.Contains(msg, "HU") {
+						action = END_ROUND
+					} else {
+						action = WAITING_FOR_GET_DISCARD_CARD
+					}
 				}
 
+			}
+
+		case END_ROUND:
+			selfming = false
+			mingset = nil
+			putnewcard = false
+			msg := dealer_recv()
+			pointslice := strings.Split(msg, " ")
+			copy(point[:], pointslice)
+			action = WAITING_NEXT_ROUND
+
+		case WAITING_NEXT_ROUND:
+			msg := dealer_recv()
+			if msg == "NEXT ROUND" {
+				action = GAME_START
+			} else {
+				action = WAITING_NEXT_ROUND
 			}
 
 		}

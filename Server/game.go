@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand/v2"
 	"sort"
@@ -154,9 +155,8 @@ func (r *Room) endgame(now int) {
 			r.Players[pos_history[0]].Point -= getpoint
 		}
 	}
-	for _, p := range r.Players {
-		sendtoplayer("Round End,Point "+strconv.Itoa(p.Point), p.ID)
-	}
+	pointstr := fmt.Sprintf("%d %d %d %d", r.Players[0].Point, r.Players[1].Point, r.Players[2].Point, r.Players[3].Point)
+	r.sendtoall(pointstr)
 }
 
 func makeFromSlice(sl []string) []string {
@@ -395,7 +395,7 @@ func (r *Room) startgame(ctx context.Context) {
 					}
 				}
 				//格式： 動作 位置 牌 ex: Pong 1 w1, Chi 1 0 (0是種類)
-				//回傳： 動作 牌 playerID  ex: Pong w1 hehehe, True Chi 0 hehehe (0是種類)
+				//回傳： 動作 牌 playerID  ex: Pong w1 hehehe, Chi 0 hehehe (0是種類)
 				if ming != nil {
 
 					sort.Slice(ming, func(i, j int) bool {
@@ -532,6 +532,23 @@ func (r *Room) startgame(ctx context.Context) {
 			baocard = r.Cardset.Card[num-14:]
 			r.round++
 			r.sendtoall("Next round")
+			for i, p := range r.Players {
+				p.Position = i
+				position[p.ID] = p.Position
+				p.Ma.Card = r.Cardset.Card[:13]
+				//log.Println(p.Ma.Card)
+				r.Cardset.Card = r.Cardset.Card[13:]
+				p.Ma.splitCard()
+
+			}
+
+			for _, p := range r.Players {
+				//打包座位、手牌並發送給玩家
+				cli_info.Pos = position
+				cli_info.Ma = p.Ma
+				cli_pos, _ := json.Marshal(cli_info)
+				sendtoplayer(string(cli_pos), p.ID)
+			}
 
 		}
 
