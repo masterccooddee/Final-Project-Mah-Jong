@@ -189,6 +189,10 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 // var new_card fyne.CanvasObject
 var top_bar *widget.Label
 var grid *fyne.Container
+var mingbuttonlist *fyne.Container
+var gangbutton *widget.Button
+var pongbutton *widget.Button
+var chibutton *widget.Button
 
 /* func makenewcard() fyne.CanvasObject {
 	if _, ok := static_name[newcc]; ok {
@@ -223,12 +227,17 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)), //7 : Myself
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
+	gangbutton = widget.NewButton("Gang", func() {})
+	pongbutton = widget.NewButton("Pong", func() {})
+	chibutton = widget.NewButton("Chi", func() {})
+
+	mingbuttonlist = container.NewHBox(gangbutton, pongbutton, chibutton)
 
 	// 修改 grid 中所有 canvas.Text 的 TextSize
 	for _, obj := range grid.Objects {
 		if center, ok := obj.(*fyne.Container); ok {
 			if text, ok := center.Objects[0].(*canvas.Text); ok {
-				text.TextSize = 20 // 設置你想要的字體大小
+				text.TextSize = 15 // 設置你想要的字體大小
 			}
 		}
 	}
@@ -236,9 +245,9 @@ func makeGUI() *fyne.Container {
 	dividers := [5]fyne.CanvasObject{
 		widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(),
 	}
-	objs := []fyne.CanvasObject{grid, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12], bottom_bar[13]}
+	objs := []fyne.CanvasObject{mingbuttonlist, grid, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12], bottom_bar[13]}
 	objs = append(objs, dividers[:]...)
-	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, grid, bottom_bar, dividers), objs...)
+	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, grid, mingbuttonlist, bottom_bar, dividers), objs...)
 }
 
 func updateGUI() {

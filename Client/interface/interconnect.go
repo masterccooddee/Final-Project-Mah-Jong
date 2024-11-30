@@ -29,6 +29,8 @@ var pos Position
 var dealer zmq4.Socket
 var ID string
 
+var mingselect *fyne.Container
+
 // for room
 var conn net.Conn
 var msg zmq4.Msg

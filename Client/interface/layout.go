@@ -8,13 +8,13 @@ import (
 const sideWidth = 80
 
 type fysionLayout struct {
-	top, top_bar, left_bar, right_bar, content fyne.CanvasObject
-	bottom_bar                                 [14]fyne.CanvasObject
-	dividers                                   [5]fyne.CanvasObject
+	top, top_bar, left_bar, right_bar, content, mingbuttonlist fyne.CanvasObject
+	bottom_bar                                                 [14]fyne.CanvasObject
+	dividers                                                   [5]fyne.CanvasObject
 }
 
-func NewFysionLayout(top, top_bar, left_bar, right_bar, content fyne.CanvasObject, bottom_bar [14]fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
-	return &fysionLayout{top: top, top_bar: top_bar, left_bar: left_bar, right_bar: right_bar, bottom_bar: bottom_bar, content: content, dividers: dividers}
+func NewFysionLayout(top, top_bar, left_bar, right_bar, content, mingbuttonlist fyne.CanvasObject, bottom_bar [14]fyne.CanvasObject, dividers [5]fyne.CanvasObject) fyne.Layout {
+	return &fysionLayout{top: top, top_bar: top_bar, left_bar: left_bar, right_bar: right_bar, bottom_bar: bottom_bar, content: content, mingbuttonlist: mingbuttonlist, dividers: dividers}
 }
 
 func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
@@ -46,6 +46,9 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 
 	l.content.Move(fyne.NewPos(size.Width/3+sideWidth/3, (topHeight*2+sideWidth+size.Height)/3))
 	l.content.Resize(fyne.NewSize((size.Width-sideWidth*2)/3, (size.Height-topHeight-sideWidth*2)/3))
+
+	l.mingbuttonlist.Move(fyne.NewPos(size.Width-sideWidth-150, (topHeight*2+sideWidth+size.Height)/3*2))
+	//l.mingbuttonlist.Resize(fyne.NewSize(100, (size.Height-topHeight-sideWidth*2)/3))
 
 	dividerThickness := theme.SeparatorThicknessSize()
 	l.dividers[0].Move(fyne.NewPos(0, topHeight))
