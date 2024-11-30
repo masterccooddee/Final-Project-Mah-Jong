@@ -30,77 +30,77 @@ type HandResult struct {
 }
 
 var tile_name = map[string]Tile{
-	"w1": Tile{Suit: "萬", Value: 1},
-	"w2": Tile{Suit: "萬", Value: 2},
-	"w3": Tile{Suit: "萬", Value: 3},
-	"w4": Tile{Suit: "萬", Value: 4},
-	"w5": Tile{Suit: "萬", Value: 5},
-	"w6": Tile{Suit: "萬", Value: 6},
-	"w7": Tile{Suit: "萬", Value: 7},
-	"w8": Tile{Suit: "萬", Value: 8},
-	"w9": Tile{Suit: "萬", Value: 9},
-	"t1": Tile{Suit: "筒", Value: 1},
-	"t2": Tile{Suit: "筒", Value: 2},
-	"t3": Tile{Suit: "筒", Value: 3},
-	"t4": Tile{Suit: "筒", Value: 4},
-	"t5": Tile{Suit: "筒", Value: 5},
-	"t6": Tile{Suit: "筒", Value: 6},
-	"t7": Tile{Suit: "筒", Value: 7},
-	"t8": Tile{Suit: "筒", Value: 8},
-	"t9": Tile{Suit: "筒", Value: 9},
-	"l1": Tile{Suit: "條", Value: 1},
-	"l2": Tile{Suit: "條", Value: 2},
-	"l3": Tile{Suit: "條", Value: 3},
-	"l4": Tile{Suit: "條", Value: 4},
-	"l5": Tile{Suit: "條", Value: 5},
-	"l6": Tile{Suit: "條", Value: 6},
-	"l7": Tile{Suit: "條", Value: 7},
-	"l8": Tile{Suit: "條", Value: 8},
-	"l9": Tile{Suit: "條", Value: 9},
-	"1":  Tile{Suit: "字", Value: 1},
-	"2":  Tile{Suit: "字", Value: 2},
-	"3":  Tile{Suit: "字", Value: 3},
-	"4":  Tile{Suit: "字", Value: 4},
-	"5":  Tile{Suit: "字", Value: 5},
-	"6":  Tile{Suit: "字", Value: 6},
-	"7":  Tile{Suit: "字", Value: 7},
+	"w1": {Suit: "萬", Value: 1},
+	"w2": {Suit: "萬", Value: 2},
+	"w3": {Suit: "萬", Value: 3},
+	"w4": {Suit: "萬", Value: 4},
+	"w5": {Suit: "萬", Value: 5},
+	"w6": {Suit: "萬", Value: 6},
+	"w7": {Suit: "萬", Value: 7},
+	"w8": {Suit: "萬", Value: 8},
+	"w9": {Suit: "萬", Value: 9},
+	"t1": {Suit: "筒", Value: 1},
+	"t2": {Suit: "筒", Value: 2},
+	"t3": {Suit: "筒", Value: 3},
+	"t4": {Suit: "筒", Value: 4},
+	"t5": {Suit: "筒", Value: 5},
+	"t6": {Suit: "筒", Value: 6},
+	"t7": {Suit: "筒", Value: 7},
+	"t8": {Suit: "筒", Value: 8},
+	"t9": {Suit: "筒", Value: 9},
+	"l1": {Suit: "條", Value: 1},
+	"l2": {Suit: "條", Value: 2},
+	"l3": {Suit: "條", Value: 3},
+	"l4": {Suit: "條", Value: 4},
+	"l5": {Suit: "條", Value: 5},
+	"l6": {Suit: "條", Value: 6},
+	"l7": {Suit: "條", Value: 7},
+	"l8": {Suit: "條", Value: 8},
+	"l9": {Suit: "條", Value: 9},
+	"1":  {Suit: "字", Value: 1},
+	"2":  {Suit: "字", Value: 2},
+	"3":  {Suit: "字", Value: 3},
+	"4":  {Suit: "字", Value: 4},
+	"5":  {Suit: "字", Value: 5},
+	"6":  {Suit: "字", Value: 6},
+	"7":  {Suit: "字", Value: 7},
 }
 
 var mao_name = map[Tile]string{
-	Tile{Suit: "萬", Value: 1}: "w1",
-	Tile{Suit: "萬", Value: 2}: "w2",
-	Tile{Suit: "萬", Value: 3}: "w3",
-	Tile{Suit: "萬", Value: 4}: "w4",
-	Tile{Suit: "萬", Value: 5}: "w5",
-	Tile{Suit: "萬", Value: 6}: "w6",
-	Tile{Suit: "萬", Value: 7}: "w7",
-	Tile{Suit: "萬", Value: 8}: "w8",
-	Tile{Suit: "萬", Value: 9}: "w9",
-	Tile{Suit: "筒", Value: 1}: "t1",
-	Tile{Suit: "筒", Value: 2}: "t2",
-	Tile{Suit: "筒", Value: 3}: "t3",
-	Tile{Suit: "筒", Value: 4}: "t4",
-	Tile{Suit: "筒", Value: 5}: "t5",
-	Tile{Suit: "筒", Value: 6}: "t6",
-	Tile{Suit: "筒", Value: 7}: "t7",
-	Tile{Suit: "筒", Value: 8}: "t8",
-	Tile{Suit: "筒", Value: 9}: "t9",
-	Tile{Suit: "條", Value: 1}: "l1",
-	Tile{Suit: "條", Value: 2}: "l2",
-	Tile{Suit: "條", Value: 3}: "l3",
-	Tile{Suit: "條", Value: 4}: "l4",
-	Tile{Suit: "條", Value: 5}: "l5",
-	Tile{Suit: "條", Value: 6}: "l6",
-	Tile{Suit: "條", Value: 7}: "l7",
-	Tile{Suit: "條", Value: 8}: "l8",
-	Tile{Suit: "條", Value: 9}: "l9",
-	Tile{Suit: "字", Value: 1}: "1",
-	Tile{Suit: "字", Value: 2}: "2",
-	Tile{Suit: "字", Value: 3}: "3",
-	Tile{Suit: "字", Value: 4}: "4",
-	Tile{Suit: "字", Value: 5}: "5",
-	Tile{Suit: "字", Value: 6}: "6",
-	Tile{Suit: "字", Value: 7}: "7",
+	{Suit: "萬", Value: 1}: "w1",
+	{Suit: "萬", Value: 2}: "w2",
+	{Suit: "萬", Value: 3}: "w3",
+	{Suit: "萬", Value: 4}: "w4",
+	{Suit: "萬", Value: 5}: "w5",
+	{Suit: "萬", Value: 6}: "w6",
+	{Suit: "萬", Value: 7}: "w7",
+	{Suit: "萬", Value: 8}: "w8",
+	{Suit: "萬", Value: 9}: "w9",
+	{Suit: "筒", Value: 1}: "t1",
+	{Suit: "筒", Value: 2}: "t2",
+	{Suit: "筒", Value: 3}: "t3",
+	{Suit: "筒", Value: 4}: "t4",
+	{Suit: "筒", Value: 5}: "t5",
+	{Suit: "筒", Value: 6}: "t6",
+	{Suit: "筒", Value: 7}: "t7",
+	{Suit: "筒", Value: 8}: "t8",
+	{Suit: "筒", Value: 9}: "t9",
+	{Suit: "條", Value: 1}: "l1",
+	{Suit: "條", Value: 2}: "l2",
+	{Suit: "條", Value: 3}: "l3",
+	{Suit: "條", Value: 4}: "l4",
+	{Suit: "條", Value: 5}: "l5",
+	{Suit: "條", Value: 6}: "l6",
+	{Suit: "條", Value: 7}: "l7",
+	{Suit: "條", Value: 8}: "l8",
+	{Suit: "條", Value: 9}: "l9",
+	{Suit: "字", Value: 1}: "1",
+	{Suit: "字", Value: 2}: "2",
+	{Suit: "字", Value: 3}: "3",
+	{Suit: "字", Value: 4}: "4",
+	{Suit: "字", Value: 5}: "5",
+	{Suit: "字", Value: 6}: "6",
+	{Suit: "字", Value: 7}: "7",
 }
 
 func MaoToHand(m *mao) Hand {
@@ -156,7 +156,7 @@ func generateAllTiles() []Tile {
 // ***********************************************胡牌判定***********************************************
 func isWinningHand(hand Hand) bool {
 	// 檢查是否符合 4 面子 + 1 將的結構
-	return checkForMentsuAndPair(hand)
+	return checkForMentsuAndPair(hand) || checkSevenPairs(hand.Tiles)
 }
 
 // 檢查7對子
@@ -177,11 +177,22 @@ func checkSevenPairs(tiles []Tile) bool {
 	return pairs == 7
 }
 
-// 檢查是否有 4 個面子 + 1 將的輔助函數
+// 檢查特殊牌型（此處僅處理槓子）
+func checkGang(hand Hand) int {
+	pairs := 0
+	if len(hand.Tiles) > 14 {
+		for i := 0; i < len(hand.Tiles)-3; i++ {
+			if hand.Tiles[i] == hand.Tiles[i+1] && hand.Tiles[i+1] == hand.Tiles[i+2] && hand.Tiles[i+2] == hand.Tiles[i+3] {
+				pairs += 1
+			}
+		}
+	}
+
+	return pairs
+}
+
+// 檢查是否有 4 個面子 + 1 將的輔助函式
 func checkForMentsuAndPair(hand Hand) bool {
-	// 這裡需要一個完整的面子拆解和配對的判定邏輯
-	// 因篇幅問題，這裡不詳細實現。
-	// 假設符合條件，返回 true；否則返回 false
 	tiles := hand.Tiles
 
 	if len(tiles) != 14 {
@@ -195,13 +206,7 @@ func checkForMentsuAndPair(hand Hand) bool {
 		return tiles[i].Suit < tiles[j].Suit
 	})
 
-	for i := 0; i < len(tiles)-1; i += 2 {
-		if tiles[i] == tiles[i+1] {
-			return true
-		}
-	}
-
-	for i := 0; i < len(tiles)-2; i++ {
+	for i := 0; i < len(tiles)-1; i++ {
 		if tiles[i] == tiles[i+1] {
 			remainingTiles := append([]Tile{}, tiles[:i]...)
 			remainingTiles = append(remainingTiles, tiles[i+2:]...)
@@ -211,7 +216,8 @@ func checkForMentsuAndPair(hand Hand) bool {
 			}
 		}
 	}
-	return false // 替換為實際邏輯
+
+	return false
 }
 
 func canFormMentsu(tiles []Tile) bool {
@@ -225,7 +231,7 @@ func canFormMentsu(tiles []Tile) bool {
 	// 如果是字牌，只能形成刻子
 	if isHonorTile(tiles[0]) {
 		if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
-			return canFormMentsu(tiles[3:]) // 若形成刻子則繼續遞迴
+			return canFormMentsu(tiles[3:])
 		}
 		return false // 無法形成有效面子
 	}
@@ -238,13 +244,10 @@ func canFormMentsu(tiles []Tile) bool {
 	}
 
 	// 對數牌嘗試用順子（例如 "1萬、2萬、3萬"）拆解
-	for i := 1; i < len(tiles)-1; i++ {
-		for j := i + 1; j < len(tiles); j++ {
-			if isSequential(tiles[0], tiles[i], tiles[j]) {
-				remainingTiles := removeTiles(tiles, []Tile{tiles[0], tiles[i], tiles[j]})
-				if canFormMentsu(remainingTiles) {
-					return true
-				}
+	if len(tiles) >= 3 {
+		if isSequential(tiles[0], tiles[1], tiles[2]) {
+			if canFormMentsu(tiles[3:]) {
+				return true
 			}
 		}
 	}
@@ -333,14 +336,7 @@ func isRiichi(player *Player, discarded Tile) bool {
 		return false
 	}
 	// 條件 2：必須處於聽牌狀態
-	// 聽雀頭
-
-	// 聽刻子
-
-	// 聽順子
-	// 聽兩邊
-
-	// 聽中間
+	_, Ready = checkTenpai(MaoToHand(&player.Ma))
 	if !Ready {
 		return false
 	}
@@ -356,8 +352,8 @@ func isRiichi(player *Player, discarded Tile) bool {
 	return true
 }
 
-/*
 // ***********************************************符數判定***********************************************
+/*
 func calculateFu(hand Hand) int {
 	fu := 20 // 胡牌基礎符數為 20 符
 
@@ -398,29 +394,29 @@ func hasAnko(hand Hand) bool {
 } */
 
 /* func main() {
-
-	hand := Hand{
-		Tiles: []Tile{
-			{Suit: "萬", Value: 1},
-			{Suit: "萬", Value: 1},
-			{Suit: "萬", Value: 2},
-			{Suit: "萬", Value: 2},
-			{Suit: "萬", Value: 3},
-			{Suit: "萬", Value: 3},
-			{Suit: "萬", Value: 4},
-			{Suit: "萬", Value: 4},
-			{Suit: "萬", Value: 5},
-			{Suit: "萬", Value: 5}, // 中
-			{Suit: "字", Value: 5}, // 中
-			{Suit: "字", Value: 5}, // 中
-			{Suit: "筒", Value: 2},
-			{Suit: "筒", Value: 2},
-		},
+	// 定義測試牌
+	testTiles := []Tile{
+		{Suit: "萬", Value: 1},
+		{Suit: "萬", Value: 8},
+		{Suit: "筒", Value: 1},
+		{Suit: "筒", Value: 2},
+		{Suit: "筒", Value: 2},
+		{Suit: "筒", Value: 2},
+		{Suit: "筒", Value: 2},
+		{Suit: "條", Value: 3},
+		{Suit: "條", Value: 5},
+		{Suit: "條", Value: 8},
+		{Suit: "條", Value: 9},
+		{Suit: "字", Value: 1},
+		{Suit: "字", Value: 3},
+		{Suit: "字", Value: 6},
 	}
 
+	hand := Hand{Tiles: testTiles}
+
 	if isWinningHand(hand) {
-		fmt.Println("這是一手可以胡的牌")
+		println("這是一手胡牌！")
 	} else {
-		fmt.Println("這手牌不能胡")
+		println("這不是一手胡牌。")
 	}
 } */

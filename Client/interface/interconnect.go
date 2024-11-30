@@ -186,6 +186,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 							//fmt.Println("Mingcard:", mingcard[i][0])
 						}
 
+<<<<<<< HEAD
 						for i := 0; i < len(mingcard); i++ {
 							switch mingcard[i][0] {
 							case "GANG":
@@ -194,6 +195,28 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 									if len(mingcard[i]) == 2 {
 										mingcard[i][1] = strings.ToLower(mingcard[i][1])
 										fmt.Printf("GANG %s", mingcard[i][1])
+=======
+								dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to pong %s?", mingcard[1]), func(confirm bool) {
+									if confirm {
+										sendmessage := fmt.Sprintf("Pong %d %s", pos.Pos[ID], mingcard[1])
+										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
+										myCards.removeCard(mingcard[1])
+										myCards.removeCard(mingcard[1])
+										myCards.SortCard()
+										newcc = "Finish Pong"
+										mingcardamount++
+										fmt.Println("{mingcardamount}", mingcardamount)
+										updateGUI()
+									} else {
+										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
+									}
+								}, fyne.CurrentApp().Driver().AllWindows()[0])
+							} else if len(mingcard) == 4 {
+
+							}
+						case "CHI":
+							var dialogWindow *dialog.CustomDialog
+>>>>>>> 13b146a2685cc9f55367f2543d3d9c2a6dfc776a
 
 										dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to Gang %s?", mingcard[i][1]), func(confirm bool) {
 											if confirm {

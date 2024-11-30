@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type mao struct {
@@ -104,4 +105,135 @@ func (c *mao) removeCard(remove string) {
 		}
 	}
 
+}
+
+func canPong(player *Player, card string) bool {
+	count := 0
+	for _, c := range player.Ma.Card {
+		if c == card {
+			count++
+		}
+	}
+	return count >= 2
+}
+
+func canGang(player *Player, card string) bool {
+	count := 0
+	for _, c := range player.Ma.Card {
+		if c == card {
+			count++
+		}
+	}
+	return count == 3
+}
+
+func canGangself(player *Player, card string) bool {
+	count := 0
+	for _, c := range player.Ma.Card {
+		if c == card {
+			count++
+		}
+	}
+	return count == 4
+}
+
+func canChi(player *Player, card string) (combinations []string) {
+	// 假設牌是按順序存儲的
+	// 需要判斷是否有連續的三張牌
+	// 例如: card 是 3, 需要判斷是否有 1, 2 或 2, 4 或 4, 5
+
+	if _, exist := player.Ma.Word[card]; exist {
+		return nil
+	}
+
+	cardkind := string(card[0])
+	cardvalue, _ := strconv.Atoi(card[1:])
+
+	// 4, 5
+	if cardvalue < 8 {
+		if player.HasCard(cardkind, cardvalue+1) && player.HasCard(cardkind, cardvalue+2) {
+			combinations = append(combinations, "0")
+
+		}
+
+	}
+
+	// 2, 4
+	if cardvalue > 1 && cardvalue < 9 {
+		if player.HasCard(cardkind, cardvalue-1) && player.HasCard(cardkind, cardvalue+1) {
+			combinations = append(combinations, "1")
+		}
+
+	}
+
+	// 1, 2
+	if cardvalue > 2 {
+		if player.HasCard(cardkind, cardvalue-2) && player.HasCard(cardkind, cardvalue-1) {
+			combinations = append(combinations, "2")
+		}
+
+	}
+	return combinations
+
+}
+
+func (p *Player) HasPong(card string) bool {
+	// 判斷是否有碰過該牌
+	_, exist := p.Pong[card]
+	return exist
+}
+
+func (p *Player) HasChi(card string) bool {
+	// 判斷是否有吃過該牌
+	_, exist := p.Chi[card]
+	return exist
+}
+
+func (p *Player) HasGang(card string) bool {
+	// 判斷是否有槓過該牌
+	_, exist := p.Gang[card]
+	return exist
+}
+
+func (p *Player) HasCard(cardkind string, cardValue int) bool {
+	// 判斷是否有該牌
+
+	switch cardkind {
+	case "w":
+		_, exist := p.Ma.Wan[cardValue]
+		return exist
+	case "t":
+		_, exist := p.Ma.Tong[cardValue]
+		return exist
+	case "l":
+		_, exist := p.Ma.Tiao[cardValue]
+		return exist
+	default:
+		_, exist := p.Ma.Word[cardkind]
+		return exist
+	}
+
+}
+
+func (p *Player) checkcard() (ma mao) {
+	ma = p.Ma
+	for k, _ := range p.Pong {
+		for i := 0; i < 3; i++ {
+			ma.Card = append(ma.Card, k)
+		}
+	}
+	for k, _ := range p.Chi {
+		cc := strings.Split(k, " ")
+		for _, v := range cc {
+			ma.Card = append(ma.Card, v)
+		}
+	}
+	for k, _ := range p.Gang {
+		for i := 0; i < 4; i++ {
+			ma.Card = append(ma.Card, k)
+		}
+	}
+	ma.SortCard()
+	ma.splitCard()
+	return
 }

@@ -34,6 +34,7 @@ type Room struct {
 	wind     int         // 0.東 1.南 2.西 3.北
 	bunround int         //本場
 	gang     [4]int      //槓的次數
+	now      int         //當前玩家
 }
 
 var roomlist = make(map[int]*Room)
