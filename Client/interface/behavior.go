@@ -369,6 +369,7 @@ var discardcard [4][]string
 var throwcard = make(chan string)
 var nowdiscard string
 var selfming bool
+var putnewcard bool
 
 func behavior() {
 	action = GAME_START_WAIT
@@ -445,10 +446,12 @@ func behavior() {
 			} else {
 				getcard = strings.ToLower(msg)
 				newcc = getcard
+				putnewcard = true
 				//myCards.Card = append(myCards.Card, getcard)
 				updateGUI()
 				action = CHECK_SELF_MING
-				updateGUI()
+				GUI.Refresh()
+
 			}
 
 		case DISCARD_CARD:
@@ -545,12 +548,16 @@ func behavior() {
 						fmt.Println("PPong", cardorkind)
 						myCards.removeCard(cardorkind)
 						myCards.removeCard(cardorkind)
+						myCards.SortCard()
+						updateGUI()
 
 						mingcardamount += 2
 					} else if strings.Contains(msg, "GANG") {
 						myCards.removeCard(cardorkind)
 						myCards.removeCard(cardorkind)
 						myCards.removeCard(cardorkind)
+						myCards.SortCard()
+						updateGUI()
 
 						mingcardamount += 3
 					} else if strings.Contains(msg, "CHI") {
@@ -561,6 +568,7 @@ func behavior() {
 							myCards.removeCard(cardkind + strconv.Itoa(number+1))
 							myCards.removeCard(cardkind + strconv.Itoa(number+2))
 							myCards.SortCard()
+							updateGUI()
 							mingcardamount += 2
 							fmt.Println("{mingcardamount}", mingcardamount)
 
@@ -568,6 +576,7 @@ func behavior() {
 							myCards.removeCard(cardkind + strconv.Itoa(number+1))
 							myCards.removeCard(cardkind + strconv.Itoa(number-1))
 							myCards.SortCard()
+							updateGUI()
 							mingcardamount += 2
 							fmt.Println("{mingcardamount}", mingcardamount)
 
@@ -575,6 +584,7 @@ func behavior() {
 							myCards.removeCard(cardkind + strconv.Itoa(number-2))
 							myCards.removeCard(cardkind + strconv.Itoa(number-1))
 							myCards.SortCard()
+							updateGUI()
 							mingcardamount += 2
 							fmt.Println("{mingcardamount}", mingcardamount)
 						}

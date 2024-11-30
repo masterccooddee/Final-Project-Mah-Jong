@@ -121,12 +121,6 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
 }
 
-// func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
-// 	//fmt.Println("TappedSecondary")
-// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-// 	tapped = !tapped
-// }
-
 func makeFromSlice(sl []string) []string {
 	result := make([]string, len(sl))
 	copy(result, sl)
@@ -147,40 +141,32 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 		}
 		return cardslice
 	} else {
-		//myCards.SortCard()
-		//fmt.Println("myCards.Card:", myCards.Card)
-		for i, card := range myCards.Card {
-			if _, ok := static_name[card]; ok {
+		var displaycards [14]string
+
+		copy(displaycards[:], myCards.Card)
+		if len(myCards.Card) < 14 {
+			for i := len(myCards.Card); i < 14; i++ {
+				displaycards[i] = "x"
+			}
+		}
+		//fmt.Println("Display_card1:", displaycards)
+		if putnewcard {
+			displaycards[13] = newcc
+			myCards.Card = append(myCards.Card, newcc)
+			putnewcard = false
+		}
+		//fmt.Println("Display_card2:", displaycards)
+		for i, card := range displaycards {
+			if card == "x" {
+				cc := canvas.NewRectangle(color.White)
+				cc.Hide()
+				cardslice[i] = cc
+			} else {
 				cc := NewTappableCard(static_name[card])
-				//cc.FillMode = canvas.ImageFillContain
-				//print("len(myCards.Card): ", len(myCards.Card))
 				cardslice[i] = cc
 			}
 		}
-		if newcc != "" {
-			cc := NewTappableCard(static_name[newcc])
-			fmt.Printf("len(myCards.Card): %d\n", len(myCards.Card))
-			cardlen := len(myCards.Card)
-			myCards.Card = append(myCards.Card, newcc)
-			newcc = ""
-			cardslice[cardlen] = cc
-			if len(myCards.Card) < 14 {
-				for i := len(myCards.Card); i < 14; i++ {
-					cc := canvas.NewRectangle(color.White)
-					cc.Hide()
-					cardslice[i] = cc
-				}
-			}
-			return cardslice
-		} else {
-			if len(myCards.Card) < 14 {
-				for i := len(myCards.Card); i < 14; i++ {
-					cc := canvas.NewRectangle(color.White)
-					cc.Hide()
-					cardslice[i] = cc
-				}
-			}
-		}
+
 		return cardslice
 	}
 
@@ -193,18 +179,6 @@ var mingbuttonlist *fyne.Container
 var gangbutton *widget.Button
 var pongbutton *widget.Button
 var chibutton *widget.Button
-
-/* func makenewcard() fyne.CanvasObject {
-	if _, ok := static_name[newcc]; ok {
-		cc := NewTappableCard(static_name[newcc])
-		//cc.FillMode = canvas.ImageFillContain
-		return cc
-	}
-	//nocc := canvas.NewImageFromResource(resourceBackPng)
-	nocc := canvas.NewRectangle(color.White)
-	nocc.Hide()
-	return nocc
-} */
 
 func makeGUI() *fyne.Container {
 	received_content := canvas.NewText("", color.Black)
@@ -261,26 +235,8 @@ func updateGUI() {
 		if c == 0 {
 			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
 			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-		} else if c == 13-mingcardamount*3 {
-			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(14-mingcardamount*3), GUI.Size().Height-sideWidth))
-			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-		} else {
-			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
-			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-		}
-	}
-	for i := 0; i < 14; i++ {
-		GUI.Objects[5+i] = bottom_bar[i]
-	}
-	//GUI.Objects[5] = bottom_bar[0]
-	//bottom_bar = makeBanner_bottom_bar()
-	/* for c := 0; c < 14; c++ {
-		//fmt.Println("c:", c)
-		if c == 0 {
-			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
-			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		} else if c == 13 {
-			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*14, GUI.Size().Height-sideWidth))
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(14), GUI.Size().Height-sideWidth))
 			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		} else {
 			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
@@ -289,9 +245,7 @@ func updateGUI() {
 	}
 	for i := 0; i < 14; i++ {
 		GUI.Objects[5+i] = bottom_bar[i]
-	} */
-	//GUI.Objects[5] = bottom_bar[0]
-
-	//GUI.Objects[18] = new_card
+	}
+	GUI.Refresh()
 
 }
