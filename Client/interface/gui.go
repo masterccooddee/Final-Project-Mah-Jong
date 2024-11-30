@@ -68,6 +68,7 @@ var tapped bool = false
 var tpapped_time int
 var tap_item []*TappableCard
 var win_size []fyne.Size
+var win_pos []fyne.Position
 
 func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 	fmt.Println("MouseIn")
@@ -78,46 +79,49 @@ func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
-	// tap_item = append(tap_item, i)
-	// win_size = append(win_size, GUI.Size())
-	// if tpapped_time > 0 {
+	tap_item = append(tap_item, i)
+	//win_size = append(win_size, w.Canvas().Size())
+	win_pos = append(win_pos, GUI.Position())
 
-	// 	if tap_item[0].Position().X != tap_item[1].Position().X {
-	// 		tpapped_time = 0
-	// 		tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
-	// 		tap_item = tap_item[1:]
+	if tpapped_time > 0 {
 
-	// 	}
-	// }
-	// fmt.Println("Tapped")
-	// if tpapped_time < 2 {
-	// 	tpapped_time++
-	// }
+		if tap_item[0].Position().X != tap_item[1].Position().X {
+			tpapped_time = 0
+			tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
+			tap_item = tap_item[1:]
 
-	// if tpapped_time == 1 {
-	// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-	// }
-	//if tpapped_time == 2 {
-	sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-
-	if action == DISCARD_CARD {
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		tpapped_time = 0
-		throwcard <- sendname
-		action = WAITING_FOR_GET_OTHER_MING
-
-		updateGUI()
-		GUI.Refresh()
-		updateGUI()
-
-	} else {
-		fmt.Println("Not your turn")
+		}
 	}
+	fmt.Println("Tapped")
 
-	//}
+	tpapped_time++
+	fmt.Println("tpapped_time:", tpapped_time)
+
+	if tpapped_time == 1 {
+		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+	}
+	if tpapped_time == 2 {
+		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+
+		if action == DISCARD_CARD {
+			myCards.removeCard(sendname)
+			myCards.SortCard()
+			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+			fmt.Println("Send:", sendname)
+			tpapped_time = 0
+			throwcard <- sendname
+			action = WAITING_FOR_GET_OTHER_MING
+
+			updateGUI()
+			GUI.Refresh()
+
+		} else {
+			fmt.Println("Not your turn")
+			i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
+			tpapped_time = 0
+		}
+		tap_item = nil
+	}
 
 }
 

@@ -66,7 +66,9 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	l.dividers[4].Move(fyne.NewPos(sideWidth, size.Height-sideWidth))
 	l.dividers[4].Resize(fyne.NewSize(size.Width-sideWidth*2, dividerThickness))
 
-	//log.Println("Size:", size)
+	//fmt.Println("Size:", size)
+	tpapped_time = 0
+	tap_item = nil
 }
 
 func (l *fysionLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
