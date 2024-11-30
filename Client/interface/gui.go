@@ -78,95 +78,51 @@ func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
-	// received := strings.ToUpper(newcc)
-	// if received == "DRAW" {
-	// 	fmt.Println("Not your turn")
-	// 	return
-	// }
-
-	// tap_item = append(tap_item, i)
-	// win_size = append(win_size, GUI.Size())
-	// if tpapped_time > 0 {
-
-	// 	if tap_item[0].Position().X != tap_item[1].Position().X {
-	// 		tpapped_time = 0
-	// 		tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
-	// 		tap_item = tap_item[1:]
-
-	// 	}
-	// }
-	// fmt.Println("Tapped")
-	// tpapped_time++
-
 	received := strings.ToUpper(newcc)
+	if received == "DRAW" {
+		fmt.Println("Not your turn")
+		return
+	}
+
+	tap_item = append(tap_item, i)
+	win_size = append(win_size, GUI.Size())
+	if tpapped_time > 0 {
+
+		if tap_item[0].Position().X != tap_item[1].Position().X {
+			tpapped_time = 0
+			tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
+			tap_item = tap_item[1:]
+
+		}
+	}
+	fmt.Println("Tapped")
+	tpapped_time++
+
+	//received := strings.ToUpper(newcc)
 	switch received {
 	case "DRAW":
 		fmt.Println("Not your turn")
 		return
-	/* case "FINISH CHI 0":
-		myCards.removeCard(RightCard)
-		myCards.removeCard(Right2Card)
-		myCards.SortCard()
-		RightCard = ""
-		Right2Card = ""
 
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = ""
-	case "FINISH CHI 1":
-		myCards.removeCard(LeftCard)
-		myCards.removeCard(RightCard)
-		myCards.SortCard()
-		LeftCard = ""
-		RightCard = ""
-
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = ""
-	case "FINISH CHI 2":
-		myCards.removeCard(LeftCard)
-		myCards.removeCard(Left2Card)
-		myCards.SortCard()
-		LeftCard = ""
-		Left2Card = ""
-
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = "" */
 	default:
-		// if tpapped_time == 1 {
-		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		// }
-		// if tpapped_time == 2 {
-		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+		if tpapped_time == 1 {
+			i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+		}
+		if tpapped_time == 2 {
+			i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
+			sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
 
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		updateGUI()
-		GUI.Refresh()
+			myCards.removeCard(sendname)
+			myCards.SortCard()
+			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+			fmt.Println("Send:", sendname)
+			//myCards.Card = append(myCards.Card, newcc)
+			updateGUI()
+			GUI.Refresh()
 
-		newcc = ""
-		//tpapped_time = 0
-		//}
+			newcc = ""
+			tpapped_time = 0
+		}
 	}
 	//} else {
 	//	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+10))
@@ -174,11 +130,11 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 	//nowthrowpos++
 }
 
-// func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
-// 	//fmt.Println("TappedSecondary")
-// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-// 	tapped = !tapped
-// }
+func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
+	//fmt.Println("TappedSecondary")
+	//i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+	//tapped = !tapped
+}
 
 func makeFromSlice(sl []string) []string {
 	result := make([]string, len(sl))
@@ -244,6 +200,10 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 // var new_card fyne.CanvasObject
 var top_bar *widget.Label
 var grid *fyne.Container
+var mingbuttonlist *fyne.Container
+var gangbutton *widget.Button
+var pongbutton *widget.Button
+var chibutton *widget.Button
 
 /* func makenewcard() fyne.CanvasObject {
 	if _, ok := static_name[newcc]; ok {
@@ -278,12 +238,17 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)), //7 : Myself
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
+	gangbutton = widget.NewButton("Gang", func() {})
+	pongbutton = widget.NewButton("Pong", func() {})
+	chibutton = widget.NewButton("Chi", func() {})
+
+	mingbuttonlist = container.NewHBox(gangbutton, pongbutton, chibutton)
 
 	// 修改 grid 中所有 canvas.Text 的 TextSize
 	for _, obj := range grid.Objects {
 		if center, ok := obj.(*fyne.Container); ok {
 			if text, ok := center.Objects[0].(*canvas.Text); ok {
-				text.TextSize = 20 // 設置你想要的字體大小
+				text.TextSize = 15 // 設置你想要的字體大小
 			}
 		}
 	}
@@ -291,9 +256,9 @@ func makeGUI() *fyne.Container {
 	dividers := [5]fyne.CanvasObject{
 		widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(),
 	}
-	objs := []fyne.CanvasObject{grid, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12], bottom_bar[13]}
+	objs := []fyne.CanvasObject{mingbuttonlist, grid, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12], bottom_bar[13]}
 	objs = append(objs, dividers[:]...)
-	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, grid, bottom_bar, dividers), objs...)
+	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, grid, mingbuttonlist, bottom_bar, dividers), objs...)
 }
 
 func updateGUI() {

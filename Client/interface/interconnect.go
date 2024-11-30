@@ -33,6 +33,8 @@ var pos Position
 var dealer zmq4.Socket
 var ID string
 
+var mingselect *fyne.Container
+
 // for room
 var conn net.Conn
 var msg zmq4.Msg
@@ -171,139 +173,172 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 						fmt.Println("Position ", cardthrow[0], " throw ", cardthrow[1])
 						msg, _ = dealer.Recv()
 						fmt.Println("Received message:", string(msg.Frames[0]))
-						mingcard := strings.Split(string(msg.Frames[0]), " ")
-						mingcard[0] = strings.ToUpper(mingcard[0])
 
-						switch mingcard[0] {
-						case "GANG":
-							if len(mingcard) == 2 {
-								mingcard[1] = strings.ToLower(mingcard[1])
-								fmt.Printf("GANG %s", mingcard[1])
+						var Checkming [3]bool = [3]bool{false, false, false}
+						mingcardset := strings.Split(string(msg.Frames[0]), ",")
+						fmt.Println("Mingcardset:", mingcardset)
+						var mingcard [][]string = make([][]string, len(mingcardset))
 
-								dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to Gang %s?", mingcard[1]), func(confirm bool) {
-									if confirm {
-										sendmessage := fmt.Sprintf("Gang %d %s", pos.Pos[ID], mingcard[1])
-										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
-										myCards.removeCard(mingcard[1])
-										myCards.removeCard(mingcard[1])
-										myCards.removeCard(mingcard[1])
-										myCards.SortCard()
-										newcc = "Finish Gang"
-										updateGUI()
-									}
-									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-								}, fyne.CurrentApp().Driver().AllWindows()[0])
-							}
-						case "PONG":
-							if len(mingcard) == 2 {
-								mingcard[1] = strings.ToLower(mingcard[1])
-								fmt.Printf("PONG %s", mingcard[1])
+						for i, v := range mingcardset {
+							mingcard[i] = strings.Split(v, " ")
+							mingcard[i][0] = strings.ToUpper(mingcard[i][0])
+							mingcard[i][0] = strings.TrimSpace(mingcard[i][0])
+							//fmt.Println("Mingcard:", mingcard[i][0])
+						}
 
-								dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to pong %s?", mingcard[1]), func(confirm bool) {
-									if confirm {
-										sendmessage := fmt.Sprintf("Pong %d %s", pos.Pos[ID], mingcard[1])
-										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
-										myCards.removeCard(mingcard[1])
-										myCards.removeCard(mingcard[1])
-										myCards.SortCard()
-										newcc = "Finish Pong"
-										mingcardamount++
-										fmt.Println("{mingcardamount}", mingcardamount)
-										updateGUI()
-									} else {
-										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-									}
-								}, fyne.CurrentApp().Driver().AllWindows()[0])
-							} else if len(mingcard) == 4
-						case "CHI":
-							var dialogWindow *dialog.CustomDialog
+						for i := 0; i < len(mingcard); i++ {
+							switch mingcard[i][0] {
+							case "GANG":
+								Checkming[0] = true
+								gangbutton = widget.NewButton(fmt.Sprintf("GANG %s", mingcard[i][1]), func() {
+									if len(mingcard[i]) == 2 {
+										mingcard[i][1] = strings.ToLower(mingcard[i][1])
+										fmt.Printf("GANG %s", mingcard[i][1])
 
-							dialog.ShowConfirm("Confirm", "Confirm to chi?", func(confirm bool) {
-								kind := string(cardthrow[1][0])
-								number, _ := strconv.Atoi(string(cardthrow[1][1]))
-								sendmessage := fmt.Sprintf("Chi %d", pos.Pos[ID])
-								var CheckPos [3]bool
-
-								RightCard = kind + strconv.Itoa(number+1)
-								LeftCard = kind + strconv.Itoa(number-1)
-								Right2Card = kind + strconv.Itoa(number+2)
-								Left2Card = kind + strconv.Itoa(number-2)
-
-								if confirm {
-									button0 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], cardthrow[1], RightCard, Right2Card), func() {
-										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 0")))
-										RightCard = strings.TrimSpace(RightCard)
-										Right2Card = strings.TrimSpace(Right2Card)
-										myCards.removeCard(RightCard)
-										myCards.removeCard(Right2Card)
-										myCards.SortCard()
-										newcc = "Finish Chi 0"
-										mingcardamount++
-										fmt.Println("{mingcardamount}", mingcardamount)
-										dialogWindow.Hide()
-										updateGUI()
-									})
-									button1 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], LeftCard, cardthrow[1], RightCard), func() {
-										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 1")))
-										LeftCard = strings.TrimSpace(LeftCard)
-										RightCard = strings.TrimSpace(RightCard)
-										myCards.removeCard(LeftCard)
-										myCards.removeCard(RightCard)
-										myCards.SortCard()
-										newcc = "Finish Chi 1"
-										mingcardamount++
-										fmt.Println("{mingcardamount}", mingcardamount)
-										dialogWindow.Hide()
-										updateGUI()
-									})
-									button2 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], Left2Card, LeftCard, cardthrow[1]), func() {
-										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 2")))
-										Left2Card = strings.TrimSpace(Left2Card)
-										LeftCard = strings.TrimSpace(LeftCard)
-										myCards.removeCard(Left2Card)
-										myCards.removeCard(LeftCard)
-										myCards.SortCard()
-										newcc = "Finish Chi 2"
-										mingcardamount++
-										fmt.Println("{mingcardamount}", mingcardamount)
-										dialogWindow.Hide()
-										updateGUI()
-									})
-									cancelbutton := widget.NewButton("Cancel", func() {
-										dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-										newcc = "Cancel Chi"
-										dialogWindow.Hide()
-										updateGUI()
-									})
-
-									for _, MingPos := range mingcard[1:] {
-										pos, _ := strconv.Atoi(MingPos)
-										CheckPos[pos] = true
-									}
-
-									for i, v := range CheckPos {
-										if !v {
-											switch i {
-											case 0:
-												button0.Hide()
-											case 1:
-												button1.Hide()
-											case 2:
-												button2.Hide()
+										dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to Gang %s?", mingcard[i][1]), func(confirm bool) {
+											if confirm {
+												sendmessage := fmt.Sprintf("Gang %d %s", pos.Pos[ID], mingcard[i][1])
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
+												myCards.removeCard(mingcard[i][1])
+												myCards.removeCard(mingcard[i][1])
+												myCards.removeCard(mingcard[i][1])
+												myCards.SortCard()
+												newcc = "Finish Gang"
+												updateGUI()
+											} else {
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
 											}
-										}
+										}, fyne.CurrentApp().Driver().AllWindows()[0])
 									}
-									container := container.NewHBox(button0, button1, button2, cancelbutton)
-									dialogWindow = dialog.NewCustomWithoutButtons("Chi", container, fyne.CurrentApp().Driver().AllWindows()[0])
-									dialogWindow.Show()
-								} else {
-									dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-								}
-							}, fyne.CurrentApp().Driver().AllWindows()[0])
+								})
+							case "PONG":
+								Checkming[1] = true
+								pongbutton = widget.NewButton(fmt.Sprintf("PONG %s", mingcard[i][1]), func() {
+									if len(mingcard[i]) == 2 {
+										mingcard[i][1] = strings.ToLower(mingcard[i][1])
+										fmt.Printf("PONG %s", mingcard[i][1])
 
-						default:
-							fmt.Println("Received message:", string(msg.Frames[0]))
-							newcc = strings.TrimSpace(string(msg.Frames[0]))
+										dialog.ShowConfirm("Confirm", fmt.Sprintf("Confirm to pong %s?", mingcard[i][1]), func(confirm bool) {
+											if confirm {
+												sendmessage := fmt.Sprintf("Pong %d %s", pos.Pos[ID], mingcard[i][1])
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
+												myCards.removeCard(mingcard[i][1])
+												myCards.removeCard(mingcard[i][1])
+												myCards.SortCard()
+												newcc = "Finish Pong"
+												mingcardamount++
+												fmt.Println("{mingcardamount}", mingcardamount)
+												updateGUI()
+											} else {
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
+											}
+										}, fyne.CurrentApp().Driver().AllWindows()[0])
+									}
+								})
+							case "CHI":
+								Checkming[2] = true
+								chibutton = widget.NewButton(fmt.Sprintf("CHI %s", mingcard[i][1]), func() {
+									var dialogWindow *dialog.CustomDialog
+
+									dialog.ShowConfirm("Confirm", "Confirm to chi?", func(confirm bool) {
+										kind := string(cardthrow[1][0])
+										number, _ := strconv.Atoi(string(cardthrow[1][1]))
+										sendmessage := fmt.Sprintf("Chi %d", pos.Pos[ID])
+										var CheckPos [3]bool
+
+										RightCard = kind + strconv.Itoa(number+1)
+										LeftCard = kind + strconv.Itoa(number-1)
+										Right2Card = kind + strconv.Itoa(number+2)
+										Left2Card = kind + strconv.Itoa(number-2)
+
+										if confirm {
+											button0 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], cardthrow[1], RightCard, Right2Card), func() {
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 0")))
+												RightCard = strings.TrimSpace(RightCard)
+												Right2Card = strings.TrimSpace(Right2Card)
+												myCards.removeCard(RightCard)
+												myCards.removeCard(Right2Card)
+												myCards.SortCard()
+												newcc = "Finish Chi 0"
+												mingcardamount++
+												fmt.Println("{mingcardamount}", mingcardamount)
+												dialogWindow.Hide()
+												updateGUI()
+											})
+											button1 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], LeftCard, cardthrow[1], RightCard), func() {
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 1")))
+												LeftCard = strings.TrimSpace(LeftCard)
+												RightCard = strings.TrimSpace(RightCard)
+												myCards.removeCard(LeftCard)
+												myCards.removeCard(RightCard)
+												myCards.SortCard()
+												newcc = "Finish Chi 1"
+												mingcardamount++
+												fmt.Println("{mingcardamount}", mingcardamount)
+												dialogWindow.Hide()
+												updateGUI()
+											})
+											button2 := widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", cardthrow[1], Left2Card, LeftCard, cardthrow[1]), func() {
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage+" 2")))
+												Left2Card = strings.TrimSpace(Left2Card)
+												LeftCard = strings.TrimSpace(LeftCard)
+												myCards.removeCard(Left2Card)
+												myCards.removeCard(LeftCard)
+												myCards.SortCard()
+												newcc = "Finish Chi 2"
+												mingcardamount++
+												fmt.Println("{mingcardamount}", mingcardamount)
+												dialogWindow.Hide()
+												updateGUI()
+											})
+											cancelbutton := widget.NewButton("Cancel", func() {
+												dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
+												newcc = "Cancel Chi"
+												dialogWindow.Hide()
+												updateGUI()
+											})
+
+											for _, MingPos := range mingcard[i][1:] {
+												pos, _ := strconv.Atoi(MingPos)
+												CheckPos[pos] = true
+											}
+
+											for i, v := range CheckPos {
+												if !v {
+													switch i {
+													case 0:
+														button0.Hide()
+													case 1:
+														button1.Hide()
+													case 2:
+														button2.Hide()
+													}
+												}
+											}
+											container := container.NewHBox(button0, button1, button2, cancelbutton)
+											dialogWindow = dialog.NewCustomWithoutButtons("Chi", container, fyne.CurrentApp().Driver().AllWindows()[0])
+											dialogWindow.Show()
+										} else {
+											dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
+										}
+									}, fyne.CurrentApp().Driver().AllWindows()[0])
+								})
+							default:
+								fmt.Println("Received Unknown Message:", string(msg.Frames[0]))
+								newcc = string(msg.Frames[0])
+							}
+							for i, v := range Checkming {
+								if !v {
+									switch i {
+									case 0:
+										gangbutton.Hide()
+									case 1:
+										pongbutton.Hide()
+									case 2:
+										chibutton.Hide()
+									}
+								}
+							}
 						}
 						updateGUI()
 					}
