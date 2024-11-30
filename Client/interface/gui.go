@@ -78,12 +78,6 @@ func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
-	// received := strings.ToUpper(newcc)
-	// if received == "DRAW" {
-	// 	fmt.Println("Not your turn")
-	// 	return
-	// }
-
 	// tap_item = append(tap_item, i)
 	// win_size = append(win_size, GUI.Size())
 	// if tpapped_time > 0 {
@@ -96,82 +90,35 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 	// 	}
 	// }
 	// fmt.Println("Tapped")
-	// tpapped_time++
+	// if tpapped_time < 2 {
+	// 	tpapped_time++
+	// }
 
-	received := strings.ToUpper(newcc)
-	switch received {
-	case "DRAW":
-		fmt.Println("Not your turn")
-		return
-	/* case "FINISH CHI 0":
-		myCards.removeCard(RightCard)
-		myCards.removeCard(Right2Card)
-		myCards.SortCard()
-		RightCard = ""
-		Right2Card = ""
+	// if tpapped_time == 1 {
+	// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+	// }
+	//if tpapped_time == 2 {
+	sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
 
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = ""
-	case "FINISH CHI 1":
-		myCards.removeCard(LeftCard)
-		myCards.removeCard(RightCard)
-		myCards.SortCard()
-		LeftCard = ""
-		RightCard = ""
-
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = ""
-	case "FINISH CHI 2":
-		myCards.removeCard(LeftCard)
-		myCards.removeCard(Left2Card)
-		myCards.SortCard()
-		LeftCard = ""
-		Left2Card = ""
-
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = "" */
-	default:
-		// if tpapped_time == 1 {
-		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		// }
-		// if tpapped_time == 2 {
-		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-
+	if action == DISCARD_CARD {
 		myCards.removeCard(sendname)
 		myCards.SortCard()
 		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
 		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
+		tpapped_time = 0
+		throwcard <- sendname
+		action = WAITING_FOR_GET_OTHER_MING
+
 		updateGUI()
 		GUI.Refresh()
+		updateGUI()
 
-		newcc = ""
-		//tpapped_time = 0
-		//}
+	} else {
+		fmt.Println("Not your turn")
 	}
-	//} else {
-	//	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+10))
+
 	//}
-	//nowthrowpos++
+
 }
 
 // func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
@@ -188,9 +135,6 @@ func makeFromSlice(sl []string) []string {
 
 func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 	fmt.Println("myCards.Card:", myCards.Card)
-	// myCards.addCard()
-	// myCards.Card = myCards.Card[:13]
-	// myCards.SortCard()
 	cardslice := [14]fyne.CanvasObject{}
 	if myCards.Card == nil {
 		for i := 0; i < 14; i++ {
@@ -213,12 +157,13 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 				cardslice[i] = cc
 			}
 		}
-		if _, ok := static_name[newcc]; ok {
+		if newcc != "" {
 			cc := NewTappableCard(static_name[newcc])
 			fmt.Printf("len(myCards.Card): %d\n", len(myCards.Card))
+			cardlen := len(myCards.Card)
 			myCards.Card = append(myCards.Card, newcc)
 			newcc = ""
-			cardslice[len(myCards.Card)-1] = cc
+			cardslice[cardlen] = cc
 			if len(myCards.Card) < 14 {
 				for i := len(myCards.Card); i < 14; i++ {
 					cc := canvas.NewRectangle(color.White)

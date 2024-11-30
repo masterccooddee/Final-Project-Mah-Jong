@@ -87,6 +87,8 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 		}
 
 		hucard := p.checkcard()
+		hucard.Card = append(hucard.Card, card)
+		hucard.splitCard()
 		if isWinningHand(MaoToHand(&hucard)) {
 			msgcomb += "Hu " + card + ","
 			h = true
@@ -97,6 +99,8 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 			count++
 			msgcomb = strings.TrimRight(msgcomb, ",")
 			sendtoplayer(msgcomb, p.ID)
+		} else {
+			sendtoplayer("MING FROM OTHER NO", p.ID)
 		}
 		po, g, c, h = false, false, false, false
 		msgcomb = ""
@@ -305,6 +309,12 @@ func (r *Room) startgame(ctx context.Context) {
 							goto nextround
 						}
 
+					} else {
+						for _, p := range r.Players {
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("MING FROM SELF NO", p.ID)
+							//}
+						}
 					}
 
 				}
@@ -319,7 +329,12 @@ func (r *Room) startgame(ctx context.Context) {
 				outcard = outcardslice[1]
 				log.Println("Player", r.Players[now].ID, "discard", outcard)
 				showcardmsg := strconv.Itoa(now) + " " + outcard
-				r.sendtoall(showcardmsg)
+				for _, p := range r.Players {
+					if p.ID != r.Players[now].ID {
+						sendtoplayer(showcardmsg, p.ID)
+					}
+				}
+				//r.sendtoall(showcardmsg)
 				hChi = false
 				hPong = false
 				r.Players[now].Ma.removeCard(outcard)
@@ -414,9 +429,9 @@ func (r *Room) startgame(ctx context.Context) {
 						pos_history = append(pos_history, now)
 
 						for _, p := range r.Players {
-							if p.ID != r.Players[now].ID {
-								sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
-							}
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
+							//}
 						}
 						continue
 					}
@@ -437,9 +452,9 @@ func (r *Room) startgame(ctx context.Context) {
 						pos_history = append(pos_history, now)
 
 						for _, p := range r.Players {
-							if p.ID != r.Players[now].ID {
-								sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
-							}
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
+							//}
 						}
 						continue
 					}
@@ -471,14 +486,18 @@ func (r *Room) startgame(ctx context.Context) {
 						pos_history = append(pos_history, now)
 
 						for _, p := range r.Players {
-							if p.ID != r.Players[now].ID {
-								sendtoplayer("True Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
-							}
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
+							//}
 						}
 						continue
 					}
 
 					//處理順序：胡、槓、碰、吃
+				} else {
+
+					r.sendtoall("WAITING MING NO")
+
 				}
 				ming = nil
 

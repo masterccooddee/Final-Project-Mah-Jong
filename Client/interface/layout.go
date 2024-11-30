@@ -35,7 +35,7 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 		if c == 0 {
 			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
 			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-		} else if c == 13-mingcardamount*3 {
+		} else if c == 13-mingcardamount {
 			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(14-mingcardamount*3), GUI.Size().Height-sideWidth))
 			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		} else {

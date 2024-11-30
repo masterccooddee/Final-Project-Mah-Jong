@@ -269,15 +269,28 @@ func showroominfo(room_id int, roomtextview *tview.TextView) {
 	roomtextview.Write([]byte("[blue]Room ID:[reset] " + strconv.Itoa(room_id) + "\n"))
 	roomtextview.Write([]byte("[blue]Players:[reset] "))
 	for i, p := range room.Players {
-		switch i {
-		case 0:
-			roomtextview.Write([]byte("(東) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
-		case 1:
-			roomtextview.Write([]byte("(南) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
-		case 2:
-			roomtextview.Write([]byte("(西) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
-		case 3:
-			roomtextview.Write([]byte("(北) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+		if p != nil {
+			switch i {
+			case 0:
+				roomtextview.Write([]byte("(東) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			case 1:
+				roomtextview.Write([]byte("(南) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			case 2:
+				roomtextview.Write([]byte("(西) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			case 3:
+				roomtextview.Write([]byte("(北) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			}
+		} else {
+			switch i {
+			case 0:
+				roomtextview.Write([]byte("(東) None  "))
+			case 1:
+				roomtextview.Write([]byte("(南) None  "))
+			case 2:
+				roomtextview.Write([]byte("(西) None  "))
+			case 3:
+				roomtextview.Write([]byte("(北) None  "))
+			}
 		}
 
 	}
@@ -303,20 +316,23 @@ func showroominfo(room_id int, roomtextview *tview.TextView) {
 		for _, p := range room.Players {
 			p.Ma.SortCard()
 			for k, _ := range p.Pong {
-				for i := 0; i < 3; i++ {
-					pongcard[p.Position] = append(pongcard[p.Position], k)
-				}
+
+				pongcard[p.Position] = append(pongcard[p.Position], k)
+
 			}
+			var i int
 			for k, _ := range p.Chi {
-				cc := strings.Split(k, " ")
-				for _, v := range cc {
-					chicard[p.Position] = append(chicard[p.Position], v)
+				if i != 0 {
+					k = "| " + k
 				}
+				chicard[p.Position] = append(chicard[p.Position], k)
+				i++
 			}
+
 			for k, _ := range p.Gang {
-				for i := 0; i < 4; i++ {
-					gangcard[p.Position] = append(gangcard[p.Position], k)
-				}
+
+				gangcard[p.Position] = append(gangcard[p.Position], k)
+
 			}
 		}
 		fmt.Fprintf(roomtextview, "東家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[0].ID, room.Players[0].Ma.Card, chicard[0], pongcard[0], gangcard[0])
