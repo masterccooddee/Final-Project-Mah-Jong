@@ -64,11 +64,8 @@ func NewTappableCard(res fyne.Resource) *TappableCard {
 	return icon
 }
 
-var tapped bool = false
 var tpapped_time int
 var tap_item []*TappableCard
-var win_size []fyne.Size
-var win_pos []fyne.Position
 
 func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 	fmt.Println("MouseIn")
@@ -80,9 +77,6 @@ func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
 	tap_item = append(tap_item, i)
-	//win_size = append(win_size, w.Canvas().Size())
-	win_pos = append(win_pos, GUI.Position())
-
 	if tpapped_time > 0 {
 
 		if tap_item[0].Position().X != tap_item[1].Position().X {
