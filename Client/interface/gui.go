@@ -105,7 +105,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 			tpapped_time = 0
 			throwcard <- sendname
 			action = WAITING_FOR_GET_OTHER_MING
-
+			grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
 			updateGUI()
 			GUI.Refresh()
 

@@ -3,6 +3,7 @@ package ui
 import (
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"os"
 	"strconv"
 	"strings"
@@ -215,6 +216,47 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 	}
 	conobj = append(conobj, cancelbutton)
 	return conobj
+}
+
+func changecolor() {
+
+	switch pos_history[0] {
+	case myPosition:
+		grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	case (myPosition + 1) % 4:
+		grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	case (myPosition + 2) % 4:
+		grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	case (myPosition + 3) % 4:
+		grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	}
+
+	if len(pos_history) == 2 {
+		switch pos_history[1] {
+		case myPosition:
+			grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		case (myPosition + 1) % 4:
+			grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		case (myPosition + 2) % 4:
+			grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		case (myPosition + 3) % 4:
+			grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		}
+		pos_history = pos_history[1:]
+	} else {
+		switch pos_history[0] {
+		case myPosition:
+			grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		case (myPosition + 1) % 4:
+			grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		case (myPosition + 2) % 4:
+			grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		case (myPosition + 3) % 4:
+			grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+		}
+	}
+
+	GUI.Refresh()
 }
 
 func behavior_handler() {
@@ -442,10 +484,13 @@ var selfming bool
 var putnewcard bool
 var mingset []string
 var point [4]string
+var now_pos int
+var pos_history []int
+var myPosition int
 
 func behavior() {
 	action = GAME_START_WAIT
-	var myPosition int
+
 	var getcard string
 	var mingchoose string
 
@@ -471,7 +516,9 @@ func behavior() {
 			fmt.Println("My Position:", myPosition)
 			// 逆時針標記其他玩家的位置
 			playerPositions = make(map[int]string)
-
+			now_pos = 0
+			pos_history = append(pos_history, now_pos)
+			changecolor()
 			var relativePos [4]int
 
 			// 逆時針標記其他玩家的位置
@@ -527,6 +574,8 @@ func behavior() {
 			}
 
 		case DISCARD_CARD:
+			grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 242, G: 76, B: 76, A: 255}
+			GUI.Refresh()
 			discardcard[myPosition] = append(discardcard[myPosition], <-throwcard)
 
 		case CHECK_SELF_MING:
@@ -562,6 +611,7 @@ func behavior() {
 			msgslice := strings.Split(msg, " ")
 			discardpos, _ := strconv.Atoi(msgslice[0])
 			fmt.Println("Discard Position:", discardpos, "Discard Card:", msgslice[1])
+
 			discardcard[discardpos] = append(discardcard[discardpos], msgslice[1])
 			nowdiscard = msgslice[1]
 			action = CHECK_MING
@@ -612,22 +662,28 @@ func behavior() {
 
 		case WAITING_FOR_GET_OTHER_MING:
 			//做相應處理
-			msg := dealer_recv()
-			msgslice := strings.Split(msg, " ")
-			cardorkind := strings.ToLower(msgslice[1])
+			msg, _ := dealer.Recv()
+			msgslice := strings.Split(string(msg.Frames[0]), " ")
+			cardorkind := msgslice[1]
 			fmt.Println("WAITING_FOR_GET_OTHER_MING:", msg)
-			if strings.Contains(msg, "NO") { //沒人鳴牌
+			if strings.Contains(string(msg.Frames[0]), "NO") { //沒人鳴牌
+				now_pos = (now_pos + 1) % 4
+				pos_history = append(pos_history, now_pos)
+				changecolor()
 				action = DRAW_CARD
 			} else {
-				if msgslice[2] == strings.ToUpper(ID) { //如果是自己鳴，接下來要丟一張
-					if strings.Contains(msg, "PONG") {
+				if msgslice[2] == ID { //如果是自己鳴，接下來要丟一張
+					now_pos = myPosition
+					pos_history = append(pos_history, now_pos)
+					changecolor()
+					if msgslice[0] == "Pong" {
 						fmt.Println("PPong", cardorkind)
 						myCards.removeCard(cardorkind)
 						myCards.removeCard(cardorkind)
 						myCards.SortCard()
 						updateGUI()
 
-					} else if strings.Contains(msg, "GANG") {
+					} else if msgslice[0] == "Gang" {
 						for _, card := range myCards.Card {
 							if strings.Contains(card, cardorkind) {
 								myCards.removeCard(card)
@@ -639,7 +695,7 @@ func behavior() {
 						action = DRAW_CARD
 						continue
 
-					} else if strings.Contains(msg, "CHI") {
+					} else if msgslice[0] == "Chi" {
 						cardkind := string(nowdiscard[0])
 						number, _ := strconv.Atoi(string(nowdiscard[1]))
 						switch cardorkind {
@@ -661,13 +717,16 @@ func behavior() {
 							myCards.SortCard()
 							updateGUI()
 						}
-					} else if strings.Contains(msg, "HU") {
+					} else if msgslice[0] == "Hu" {
 						action = END_ROUND
 						continue
 					}
 					action = DISCARD_CARD
 				} else {
-					if strings.Contains(msg, "HU") {
+					now_pos = pos.Pos[msgslice[2]]
+					pos_history = append(pos_history, now_pos)
+					changecolor()
+					if msgslice[0] == "Hu" {
 						action = END_ROUND
 					} else {
 						action = WAITING_FOR_GET_DISCARD_CARD
