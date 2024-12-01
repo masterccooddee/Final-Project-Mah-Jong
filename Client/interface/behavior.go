@@ -739,6 +739,7 @@ func behavior() {
 			selfming = false
 			mingset = nil
 			putnewcard = false
+			pos_history = nil
 			msg := dealer_recv()
 			pointslice := strings.Split(msg, " ")
 			copy(point[:], pointslice)
