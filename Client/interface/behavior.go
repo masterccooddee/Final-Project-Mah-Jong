@@ -657,6 +657,10 @@ func behavior() {
 
 		case CHOOSE_MING:
 			//顯示按鈕給按
+			/* mingbuttonlist := put_button(selfming, nowdiscard)
+			container := container.NewHBox(mingbuttonlist...)
+			dialogWindow := dialog.NewCustomWithoutButtons("Ming", container, fyne.CurrentApp().Driver().AllWindows()[0])
+			dialogWindow.Show() */
 
 			action = WAITING_FOR_GET_OTHER_MING
 

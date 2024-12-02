@@ -174,9 +174,6 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 var top_bar *widget.Label
 var grid *fyne.Container
 var mingbuttonlist *fyne.Container
-var gangbutton *widget.Button
-var pongbutton *widget.Button
-var chibutton *widget.Button
 
 func makeGUI() *fyne.Container {
 	received_content := canvas.NewText("", color.Black)
@@ -199,11 +196,8 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)), //7 : Myself
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
-	gangbutton = widget.NewButton("Gang", func() {})
-	pongbutton = widget.NewButton("Pong", func() {})
-	chibutton = widget.NewButton("Chi", func() {})
 
-	mingbuttonlist = container.NewHBox(gangbutton, pongbutton, chibutton)
+	mingbuttonlist = container.NewHBox()
 
 	// 修改 grid 中所有 canvas.Text 的 TextSize
 	for _, obj := range grid.Objects {
