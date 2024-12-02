@@ -192,6 +192,7 @@ func checkGang(hand Hand) int {
 }
 
 // 檢查是否有 4 個面子 + 1 將的輔助函式
+// 檢查是否可以拆分為 4 面子 + 1 將
 func checkForMentsuAndPair(hand Hand) bool {
 	tiles := hand.Tiles
 
@@ -206,56 +207,40 @@ func checkForMentsuAndPair(hand Hand) bool {
 		return tiles[i].Suit < tiles[j].Suit
 	})
 
-	for i := 0; i < len(tiles)-1; i++ {
-		if tiles[i] == tiles[i+1] {
-			remainingTiles := append([]Tile{}, tiles[:i]...)
-			remainingTiles = append(remainingTiles, tiles[i+2:]...)
-
-			if canFormMentsu(remainingTiles) {
-				return true
-			}
-		}
-	}
-
-	return false
+	return findMentsuAndPair(tiles, 0, 0)
 }
 
-func canFormMentsu(tiles []Tile) bool {
+// 遞迴查找是否可以拆分成 4 面子 + 1 將
+func findMentsuAndPair(tiles []Tile, mentsuCount, pairCount int) bool {
 	if len(tiles) == 0 {
-		return true // 沒有剩餘牌，表示成功拆解成面子
-	}
-	if len(tiles) < 3 {
-		return false // 剩餘牌不足以形成面子
+		return mentsuCount == 4 && pairCount == 1
 	}
 
-	// 如果是字牌，只能形成刻子
-	if isHonorTile(tiles[0]) {
-		if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
-			return canFormMentsu(tiles[3:])
-		}
-		return false // 無法形成有效面子
-	}
-
-	// 對數牌嘗試用刻子（例如 "5筒、5筒、5筒"）拆解
-	if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
-		if canFormMentsu(tiles[3:]) {
+	// 嘗試找將牌（雀頭）
+	if pairCount == 0 && len(tiles) >= 2 && tiles[0] == tiles[1] {
+		if findMentsuAndPair(tiles[2:], mentsuCount, pairCount+1) {
 			return true
 		}
 	}
 
-	// 對數牌嘗試用順子（例如 "1萬、2萬、3萬"）拆解
-	if len(tiles) >= 3 {
-		if isSequential(tiles[0], tiles[1], tiles[2]) {
-			if canFormMentsu(tiles[3:]) {
-				return true
-			}
+	// 嘗試找刻子
+	if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
+		if findMentsuAndPair(tiles[3:], mentsuCount+1, pairCount) {
+			return true
+		}
+	}
+
+	// 嘗試找順子
+	if len(tiles) >= 3 && isSequential(tiles[0], tiles[1], tiles[2]) {
+		if findMentsuAndPair(tiles[3:], mentsuCount+1, pairCount) {
+			return true
 		}
 	}
 
 	return false
 }
 
-// 判斷三張牌是否為順子（同花色且連續數字）
+// 判斷是否為順子
 func isSequential(a, b, c Tile) bool {
 	return a.Suit == b.Suit && b.Suit == c.Suit &&
 		a.Value+1 == b.Value && b.Value+1 == c.Value
