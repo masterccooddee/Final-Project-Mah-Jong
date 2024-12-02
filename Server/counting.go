@@ -212,26 +212,47 @@ func checkForMentsuAndPair(hand Hand) bool {
 
 // 遞迴查找是否可以拆分成 4 面子 + 1 將
 func findMentsuAndPair(tiles []Tile, mentsuCount, pairCount int) bool {
+	/* for _, tile := range tiles {
+		fmt.Print(tile)
+	}
+	fmt.Println(mentsuCount, pairCount)
+	fmt.Println() */
 	if len(tiles) == 0 {
+		//fmt.Println("========================================================")
 		return mentsuCount == 4 && pairCount == 1
 	}
 
 	// 嘗試找將牌（雀頭）
 	if pairCount == 0 && len(tiles) >= 2 && tiles[0] == tiles[1] {
+		//fmt.Println("head: ", tiles[0], tiles[1])
 		if findMentsuAndPair(tiles[2:], mentsuCount, pairCount+1) {
 			return true
 		}
 	}
 
-	// 嘗試找刻子
-	if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
+	// 嘗試找順子
+	for i := 1; i < len(tiles)-1; i++ {
+		for j := i + 1; j < len(tiles); j++ {
+			if len(tiles) >= 3 && isSequential(tiles[0], tiles[i], tiles[j]) {
+				remain := removeTiles(tiles, []Tile{tiles[0], tiles[i], tiles[j]})
+				if findMentsuAndPair(remain, mentsuCount+1, pairCount) {
+					return true
+				}
+			}
+		}
+	}
+	/* if len(tiles) >= 3 && isSequential(tiles[0], tiles[1], tiles[2]) {
+		fmt.Printf("sequence%d: ", mentsuCount)
+		fmt.Println(tiles[0], tiles[1], tiles[2])
 		if findMentsuAndPair(tiles[3:], mentsuCount+1, pairCount) {
 			return true
 		}
-	}
+	} */
 
-	// 嘗試找順子
-	if len(tiles) >= 3 && isSequential(tiles[0], tiles[1], tiles[2]) {
+	// 嘗試找刻子
+	if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
+		//fmt.Printf("triplet%d: ", mentsuCount)
+		//fmt.Println(tiles[0], tiles[1], tiles[2])
 		if findMentsuAndPair(tiles[3:], mentsuCount+1, pairCount) {
 			return true
 		}
@@ -381,27 +402,28 @@ func hasAnko(hand Hand) bool {
 /* func main() {
 	// 定義測試牌
 	testTiles := []Tile{
-		{Suit: "萬", Value: 1},
-		{Suit: "萬", Value: 8},
+		{Suit: "萬", Value: 4},
+		{Suit: "萬", Value: 4},
+		{Suit: "萬", Value: 4},
+		{Suit: "萬", Value: 5},
+		{Suit: "萬", Value: 6},
 		{Suit: "筒", Value: 1},
 		{Suit: "筒", Value: 2},
-		{Suit: "筒", Value: 2},
-		{Suit: "筒", Value: 2},
-		{Suit: "筒", Value: 2},
-		{Suit: "條", Value: 3},
+		{Suit: "筒", Value: 3},
+		{Suit: "條", Value: 4},
 		{Suit: "條", Value: 5},
-		{Suit: "條", Value: 8},
-		{Suit: "條", Value: 9},
-		{Suit: "字", Value: 1},
-		{Suit: "字", Value: 3},
-		{Suit: "字", Value: 6},
+		{Suit: "條", Value: 6},
+		{Suit: "條", Value: 5},
+		{Suit: "條", Value: 6},
+		{Suit: "條", Value: 7},
 	}
 
 	hand := Hand{Tiles: testTiles}
-
+	isWinningHand(hand)
 	if isWinningHand(hand) {
 		println("這是一手胡牌！")
 	} else {
 		println("這不是一手胡牌。")
 	}
-} */
+}
+*/
