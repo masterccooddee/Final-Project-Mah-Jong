@@ -197,7 +197,22 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
 
-	mingbuttonlist = container.NewHBox()
+	/* gangbutton := widget.NewButton("Gang", func() {})
+	pongbutton := widget.NewButton("Pong", func() {})
+	chibutton := widget.NewButton("Chi", func() {})
+	hubutton := widget.NewButton("Hu", func() {})
+
+	// 使用 Grid 佈局來確保按鈕大小相同
+	mingbuttonlist := container.NewGridWithColumns(4, gangbutton, pongbutton, chibutton, hubutton)
+
+	// 修改 grid 中所有 canvas.Text 的 TextSize
+	for _, obj := range grid.Objects {
+		if center, ok := obj.(*fyne.Container); ok {
+			if text, ok := center.Objects[0].(*canvas.Text); ok {
+				text.TextSize = 15 // 設置你想要的字體大小
+			}
+		}
+	} */
 
 	// 修改 grid 中所有 canvas.Text 的 TextSize
 	for _, obj := range grid.Objects {

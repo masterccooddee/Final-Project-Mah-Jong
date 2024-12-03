@@ -660,7 +660,7 @@ func behavior() {
 			/* mingbuttonlist := put_button(selfming, nowdiscard)
 			container := container.NewHBox(mingbuttonlist...)
 			dialogWindow := dialog.NewCustomWithoutButtons("Ming", container, fyne.CurrentApp().Driver().AllWindows()[0])
-			dialogWindow.Show() */
+			dialogWindow.Show()  */
 
 			action = WAITING_FOR_GET_OTHER_MING
 
