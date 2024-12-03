@@ -64,10 +64,8 @@ func NewTappableCard(res fyne.Resource) *TappableCard {
 	return icon
 }
 
-var tapped bool = false
 var tpapped_time int
 var tap_item []*TappableCard
-var win_size []fyne.Size
 
 func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 	fmt.Println("MouseIn")
@@ -78,107 +76,48 @@ func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
 
 func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
-	// received := strings.ToUpper(newcc)
-	// if received == "DRAW" {
-	// 	fmt.Println("Not your turn")
-	// 	return
-	// }
+	tap_item = append(tap_item, i)
+	if tpapped_time > 0 {
 
-	// tap_item = append(tap_item, i)
-	// win_size = append(win_size, GUI.Size())
-	// if tpapped_time > 0 {
+		if tap_item[0].Position().X != tap_item[1].Position().X {
+			tpapped_time = 0
+			tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
+			tap_item = tap_item[1:]
 
-	// 	if tap_item[0].Position().X != tap_item[1].Position().X {
-	// 		tpapped_time = 0
-	// 		tap_item[0].Move(fyne.NewPos(tap_item[0].Position().X, tap_item[0].Position().Y+30))
-	// 		tap_item = tap_item[1:]
-
-	// 	}
-	// }
-	// fmt.Println("Tapped")
-	// tpapped_time++
-
-	received := strings.ToUpper(newcc)
-	switch received {
-	case "DRAW":
-		fmt.Println("Not your turn")
-		return
-	/* case "FINISH CHI 0":
-		myCards.removeCard(RightCard)
-		myCards.removeCard(Right2Card)
-		myCards.SortCard()
-		RightCard = ""
-		Right2Card = ""
-
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = ""
-	case "FINISH CHI 1":
-		myCards.removeCard(LeftCard)
-		myCards.removeCard(RightCard)
-		myCards.SortCard()
-		LeftCard = ""
-		RightCard = ""
-
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = ""
-	case "FINISH CHI 2":
-		myCards.removeCard(LeftCard)
-		myCards.removeCard(Left2Card)
-		myCards.SortCard()
-		LeftCard = ""
-		Left2Card = ""
-
-		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		newcc = "" */
-	default:
-		// if tpapped_time == 1 {
-		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-		// }
-		// if tpapped_time == 2 {
-		// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
-		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
-
-		myCards.removeCard(sendname)
-		myCards.SortCard()
-		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-		fmt.Println("Send:", sendname)
-		//myCards.Card = append(myCards.Card, newcc)
-		updateGUI()
-		GUI.Refresh()
-
-		newcc = ""
-		//tpapped_time = 0
-		//}
+		}
 	}
-	//} else {
-	//	i.Move(fyne.NewPos(i.Position().X, i.Position().Y+10))
-	//}
-	//nowthrowpos++
-}
+	fmt.Println("Tapped")
 
-// func (i *TappableCard) TappedSecondary(_ *fyne.PointEvent) {
-// 	//fmt.Println("TappedSecondary")
-// 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
-// 	tapped = !tapped
-// }
+	tpapped_time++
+	fmt.Println("tpapped_time:", tpapped_time)
+
+	if tpapped_time == 1 {
+		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
+	}
+	if tpapped_time == 2 {
+		sendname := strings.TrimSuffix(i.Resource.Name(), ".png")
+
+		if action == DISCARD_CARD {
+			myCards.removeCard(sendname)
+			myCards.SortCard()
+			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
+			fmt.Println("Send:", sendname)
+			tpapped_time = 0
+			throwcard <- sendname
+			action = WAITING_FOR_GET_OTHER_MING
+			grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+			updateGUI()
+			GUI.Refresh()
+
+		} else {
+			fmt.Println("Not your turn")
+			i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
+			tpapped_time = 0
+		}
+		tap_item = nil
+	}
+
+}
 
 func makeFromSlice(sl []string) []string {
 	result := make([]string, len(sl))
@@ -188,9 +127,6 @@ func makeFromSlice(sl []string) []string {
 
 func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 	fmt.Println("myCards.Card:", myCards.Card)
-	// myCards.addCard()
-	// myCards.Card = myCards.Card[:13]
-	// myCards.SortCard()
 	cardslice := [14]fyne.CanvasObject{}
 	if myCards.Card == nil {
 		for i := 0; i < 14; i++ {
@@ -203,39 +139,32 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 		}
 		return cardslice
 	} else {
-		//myCards.SortCard()
-		//fmt.Println("myCards.Card:", myCards.Card)
-		for i, card := range myCards.Card {
-			if _, ok := static_name[card]; ok {
+		var displaycards [14]string
+
+		copy(displaycards[:], myCards.Card)
+		if len(myCards.Card) < 14 {
+			for i := len(myCards.Card); i < 14; i++ {
+				displaycards[i] = "x"
+			}
+		}
+		//fmt.Println("Display_card1:", displaycards)
+		if putnewcard {
+			displaycards[13] = newcc
+			myCards.Card = append(myCards.Card, newcc)
+			putnewcard = false
+		}
+		//fmt.Println("Display_card2:", displaycards)
+		for i, card := range displaycards {
+			if card == "x" {
+				cc := canvas.NewRectangle(color.White)
+				cc.Hide()
+				cardslice[i] = cc
+			} else {
 				cc := NewTappableCard(static_name[card])
-				//cc.FillMode = canvas.ImageFillContain
-				//print("len(myCards.Card): ", len(myCards.Card))
 				cardslice[i] = cc
 			}
 		}
-		if _, ok := static_name[newcc]; ok {
-			cc := NewTappableCard(static_name[newcc])
-			fmt.Printf("len(myCards.Card): %d\n", len(myCards.Card))
-			myCards.Card = append(myCards.Card, newcc)
-			newcc = ""
-			cardslice[len(myCards.Card)-1] = cc
-			if len(myCards.Card) < 14 {
-				for i := len(myCards.Card); i < 14; i++ {
-					cc := canvas.NewRectangle(color.White)
-					cc.Hide()
-					cardslice[i] = cc
-				}
-			}
-			return cardslice
-		} else {
-			if len(myCards.Card) < 14 {
-				for i := len(myCards.Card); i < 14; i++ {
-					cc := canvas.NewRectangle(color.White)
-					cc.Hide()
-					cardslice[i] = cc
-				}
-			}
-		}
+
 		return cardslice
 	}
 
@@ -244,18 +173,7 @@ func makeBanner_bottom_bar() [14]fyne.CanvasObject {
 // var new_card fyne.CanvasObject
 var top_bar *widget.Label
 var grid *fyne.Container
-
-/* func makenewcard() fyne.CanvasObject {
-	if _, ok := static_name[newcc]; ok {
-		cc := NewTappableCard(static_name[newcc])
-		//cc.FillMode = canvas.ImageFillContain
-		return cc
-	}
-	//nocc := canvas.NewImageFromResource(resourceBackPng)
-	nocc := canvas.NewRectangle(color.White)
-	nocc.Hide()
-	return nocc
-} */
+var mingbuttonlist *fyne.Container
 
 func makeGUI() *fyne.Container {
 	received_content := canvas.NewText("", color.Black)
@@ -279,11 +197,13 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
 
+	mingbuttonlist = container.NewHBox()
+
 	// 修改 grid 中所有 canvas.Text 的 TextSize
 	for _, obj := range grid.Objects {
 		if center, ok := obj.(*fyne.Container); ok {
 			if text, ok := center.Objects[0].(*canvas.Text); ok {
-				text.TextSize = 20 // 設置你想要的字體大小
+				text.TextSize = 15 // 設置你想要的字體大小
 			}
 		}
 	}
@@ -291,9 +211,9 @@ func makeGUI() *fyne.Container {
 	dividers := [5]fyne.CanvasObject{
 		widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator(),
 	}
-	objs := []fyne.CanvasObject{grid, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12], bottom_bar[13]}
+	objs := []fyne.CanvasObject{mingbuttonlist, grid, top, top_bar, left_bar, right_bar, bottom_bar[0], bottom_bar[1], bottom_bar[2], bottom_bar[3], bottom_bar[4], bottom_bar[5], bottom_bar[6], bottom_bar[7], bottom_bar[8], bottom_bar[9], bottom_bar[10], bottom_bar[11], bottom_bar[12], bottom_bar[13]}
 	objs = append(objs, dividers[:]...)
-	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, grid, bottom_bar, dividers), objs...)
+	return container.New(NewFysionLayout(top, top_bar, left_bar, right_bar, grid, mingbuttonlist, bottom_bar, dividers), objs...)
 }
 
 func updateGUI() {
@@ -307,26 +227,8 @@ func updateGUI() {
 		if c == 0 {
 			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
 			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-		} else if c == 13-mingcardamount*3 {
-			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(14-mingcardamount*3), GUI.Size().Height-sideWidth))
-			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-		} else {
-			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
-			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
-		}
-	}
-	for i := 0; i < 14; i++ {
-		GUI.Objects[5+i] = bottom_bar[i]
-	}
-	//GUI.Objects[5] = bottom_bar[0]
-	//bottom_bar = makeBanner_bottom_bar()
-	/* for c := 0; c < 14; c++ {
-		//fmt.Println("c:", c)
-		if c == 0 {
-			bottom_bar[0].Move(fyne.NewPos(sideWidth, GUI.Size().Height-sideWidth))
-			bottom_bar[0].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		} else if c == 13 {
-			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*14, GUI.Size().Height-sideWidth))
+			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*(float32)(14), GUI.Size().Height-sideWidth))
 			bottom_bar[c].Resize(fyne.NewSize((GUI.Size().Width-sideWidth*2)/13, sideWidth))
 		} else {
 			bottom_bar[c].Move(fyne.NewPos(sideWidth+(GUI.Size().Width-sideWidth*2-150*GUI.Size().Width/1024)/13*((float32)(c)), GUI.Size().Height-sideWidth))
@@ -335,9 +237,7 @@ func updateGUI() {
 	}
 	for i := 0; i < 14; i++ {
 		GUI.Objects[5+i] = bottom_bar[i]
-	} */
-	//GUI.Objects[5] = bottom_bar[0]
-
-	//GUI.Objects[18] = new_card
+	}
+	GUI.Refresh()
 
 }

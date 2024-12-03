@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand/v2"
 	"sort"
@@ -86,7 +87,10 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 			c = true
 		}
 
-		if isWinningHand(MaoToHand(&p.Ma)) {
+		hucard := p.checkcard()
+		hucard.Card = append(hucard.Card, card)
+		hucard.splitCard()
+		if isWinningHand(MaoToHand(&hucard)) {
 			msgcomb += "Hu " + card + ","
 			h = true
 
@@ -96,6 +100,8 @@ func (r *Room) MingCard(player *Player, card string, now int) (count int) { //co
 			count++
 			msgcomb = strings.TrimRight(msgcomb, ",")
 			sendtoplayer(msgcomb, p.ID)
+		} else {
+			sendtoplayer("MING FROM OTHER NO", p.ID)
 		}
 		po, g, c, h = false, false, false, false
 		msgcomb = ""
@@ -149,9 +155,8 @@ func (r *Room) endgame(now int) {
 			r.Players[pos_history[0]].Point -= getpoint
 		}
 	}
-	for _, p := range r.Players {
-		sendtoplayer("Round End,Point "+strconv.Itoa(p.Point), p.ID)
-	}
+	pointstr := fmt.Sprintf("%d %d %d %d", r.Players[0].Point, r.Players[1].Point, r.Players[2].Point, r.Players[3].Point)
+	r.sendtoall(pointstr)
 }
 
 func makeFromSlice(sl []string) []string {
@@ -214,6 +219,7 @@ func (r *Room) startgame(ctx context.Context) {
 		}
 
 		now = 0
+		r.now = now
 		pos_history = append(pos_history, now)
 
 		num := len(r.Cardset.Card)
@@ -250,7 +256,9 @@ func (r *Room) startgame(ctx context.Context) {
 
 					var selfmsg string
 					//有沒有辦法胡牌、槓牌
-					if isWinningHand(MaoToHand(&r.Players[now].Ma)) {
+
+					hucard := r.Players[now].checkcard()
+					if isWinningHand(MaoToHand(&hucard)) {
 						//胡牌
 						selfmsg += "Hu " + r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1] + ","
 
@@ -301,6 +309,12 @@ func (r *Room) startgame(ctx context.Context) {
 							goto nextround
 						}
 
+					} else {
+						for _, p := range r.Players {
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("MING FROM SELF NO", p.ID)
+							//}
+						}
 					}
 
 				}
@@ -315,7 +329,12 @@ func (r *Room) startgame(ctx context.Context) {
 				outcard = outcardslice[1]
 				log.Println("Player", r.Players[now].ID, "discard", outcard)
 				showcardmsg := strconv.Itoa(now) + " " + outcard
-				r.sendtoall(showcardmsg)
+				for _, p := range r.Players {
+					if p.ID != r.Players[now].ID {
+						sendtoplayer(showcardmsg, p.ID)
+					}
+				}
+				//r.sendtoall(showcardmsg)
 				hChi = false
 				hPong = false
 				r.Players[now].Ma.removeCard(outcard)
@@ -348,7 +367,13 @@ func (r *Room) startgame(ctx context.Context) {
 					for {
 						select {
 						case getcard = <-r.recvchan:
-							getcard = strings.TrimSpace(getcard)
+							getcardslice := strings.Split(getcard, " ")
+							if getcardslice[1] == "Cancel" {
+								continue
+							} else {
+								getcard = getcardslice[1] + " " + getcardslice[2] + " " + getcardslice[3]
+							}
+
 							ming = append(ming, getcard)
 							cnt--
 							if cnt == 0 {
@@ -370,7 +395,7 @@ func (r *Room) startgame(ctx context.Context) {
 					}
 				}
 				//格式： 動作 位置 牌 ex: Pong 1 w1, Chi 1 0 (0是種類)
-				//回傳： 動作 牌 playerID  ex: Pong w1 hehehe, True Chi 0 hehehe (0是種類)
+				//回傳： 動作 牌 playerID  ex: Pong w1 hehehe, Chi 0 hehehe (0是種類)
 				if ming != nil {
 
 					sort.Slice(ming, func(i, j int) bool {
@@ -399,13 +424,14 @@ func (r *Room) startgame(ctx context.Context) {
 						hGang = true
 
 						now = pos
+						r.now = now
 						pos_history = pos_history[1:]
 						pos_history = append(pos_history, now)
 
 						for _, p := range r.Players {
-							if p.ID != r.Players[now].ID {
-								sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
-							}
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("Gang "+outcard+" "+r.Players[now].ID, p.ID)
+							//}
 						}
 						continue
 					}
@@ -421,13 +447,14 @@ func (r *Room) startgame(ctx context.Context) {
 						r.Players[pos].Pong[outcard] = struct{}{}
 
 						now = pos
+						r.now = now
 						pos_history = pos_history[1:]
 						pos_history = append(pos_history, now)
 
 						for _, p := range r.Players {
-							if p.ID != r.Players[now].ID {
-								sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
-							}
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("Pong "+outcard+" "+r.Players[now].ID, p.ID)
+							//}
 						}
 						continue
 					}
@@ -454,27 +481,34 @@ func (r *Room) startgame(ctx context.Context) {
 						r.Players[pos].Ma.splitCard()
 
 						now = pos
+						r.now = now
 						pos_history = pos_history[1:]
 						pos_history = append(pos_history, now)
 
 						for _, p := range r.Players {
-							if p.ID != r.Players[now].ID {
-								sendtoplayer("True Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
-							}
+							//if p.ID != r.Players[now].ID {
+							sendtoplayer("Chi "+msg[2]+" "+r.Players[now].ID, p.ID)
+							//}
 						}
 						continue
 					}
 
 					//處理順序：胡、槓、碰、吃
+				} else {
+
+					r.sendtoall("WAITING MING NO")
+
 				}
 				ming = nil
 
 				now = (now + 1) % 4
+				r.now = now
 				pos_history = pos_history[1:]
 				pos_history = append(pos_history, now)
 			}
 		nextround:
 			now = 0
+			r.now = now
 			pos_history = nil
 			pos_history = append(pos_history, now)
 
@@ -498,6 +532,23 @@ func (r *Room) startgame(ctx context.Context) {
 			baocard = r.Cardset.Card[num-14:]
 			r.round++
 			r.sendtoall("Next round")
+			for i, p := range r.Players {
+				p.Position = i
+				position[p.ID] = p.Position
+				p.Ma.Card = r.Cardset.Card[:13]
+				//log.Println(p.Ma.Card)
+				r.Cardset.Card = r.Cardset.Card[13:]
+				p.Ma.splitCard()
+
+			}
+
+			for _, p := range r.Players {
+				//打包座位、手牌並發送給玩家
+				cli_info.Pos = position
+				cli_info.Ma = p.Ma
+				cli_pos, _ := json.Marshal(cli_info)
+				sendtoplayer(string(cli_pos), p.ID)
+			}
 
 		}
 

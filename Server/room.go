@@ -34,6 +34,7 @@ type Room struct {
 	wind     int         // 0.東 1.南 2.西 3.北
 	bunround int         //本場
 	gang     [4]int      //槓的次數
+	now      int         //當前玩家
 }
 
 var roomlist = make(map[int]*Room)
@@ -86,7 +87,7 @@ func Room_finder(player *player_in) int {
 	// 優先找人多的房間
 	var rooms []*Room
 	for _, r := range roomlist {
-		if len(r.Players) < 4 && r.private == false {
+		if len(r.Players) < 4 && r.private == false && r.running == false {
 			rooms = append(rooms, r)
 		}
 	}
@@ -116,7 +117,14 @@ func Room_finder(player *player_in) int {
 func (r *Room) leave_room(player *player_in) {
 	for i, p := range r.Players {
 		if p.ID == player.ID {
-			r.Players = append(r.Players[:i], r.Players[i+1:]...)
+			if r.running {
+				r.Players[i].Ma = mao{}
+				r.Players[i].Pong = make(map[string]struct{})
+				r.Players[i].Chi = make(map[string]struct{})
+				r.Players[i].Gang = make(map[string]struct{})
+			} else {
+				r.Players = append(r.Players[:i], r.Players[i+1:]...)
+			}
 			player.Room_ID = -1
 			log.Println("[#FFA500]" + player.ID + " [reset]leave room [yellow]" + strconv.Itoa(r.Room_ID) + "[reset]")
 			player.conn.Write([]byte("True Leave room"))

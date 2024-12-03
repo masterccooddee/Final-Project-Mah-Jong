@@ -269,15 +269,28 @@ func showroominfo(room_id int, roomtextview *tview.TextView) {
 	roomtextview.Write([]byte("[blue]Room ID:[reset] " + strconv.Itoa(room_id) + "\n"))
 	roomtextview.Write([]byte("[blue]Players:[reset] "))
 	for i, p := range room.Players {
-		switch i {
-		case 0:
-			roomtextview.Write([]byte("(東) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
-		case 1:
-			roomtextview.Write([]byte("(南) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
-		case 2:
-			roomtextview.Write([]byte("(西) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
-		case 3:
-			roomtextview.Write([]byte("(北) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+		if p != nil {
+			switch i {
+			case 0:
+				roomtextview.Write([]byte("(東) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			case 1:
+				roomtextview.Write([]byte("(南) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			case 2:
+				roomtextview.Write([]byte("(西) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			case 3:
+				roomtextview.Write([]byte("(北) " + p.ID + ": [yellow]" + strconv.Itoa(p.Point) + "[reset]  "))
+			}
+		} else {
+			switch i {
+			case 0:
+				roomtextview.Write([]byte("(東) None  "))
+			case 1:
+				roomtextview.Write([]byte("(南) None  "))
+			case 2:
+				roomtextview.Write([]byte("(西) None  "))
+			case 3:
+				roomtextview.Write([]byte("(北) None  "))
+			}
 		}
 
 	}
@@ -295,12 +308,37 @@ func showroominfo(room_id int, roomtextview *tview.TextView) {
 			fmt.Fprintf(roomtextview, "[blue]局數：[reset]北%d局 %d本場\n\n", room.round, room.bunround)
 		}
 		fmt.Fprintf(roomtextview, "[blue]牌譜：[reset]\n%v\n", room.Cardset.Card)
-		fmt.Fprintf(roomtextview, "[blue]剩餘牌數：[reset]%d\n\n", room.lastcard)
+		fmt.Fprintf(roomtextview, "[blue]剩餘牌數：[reset]%d\n\n[blue]現在該出牌：[reset]%s\n\n", room.lastcard, room.Players[room.now].ID)
 		fmt.Fprint(roomtextview, "[blue]各家手牌：[reset]\n")
-		fmt.Fprintf(roomtextview, "東家：\n%v\n", room.Players[0].Ma.Card)
-		fmt.Fprintf(roomtextview, "南家：\n%v\n", room.Players[1].Ma.Card)
-		fmt.Fprintf(roomtextview, "西家：\n%v\n", room.Players[2].Ma.Card)
-		fmt.Fprintf(roomtextview, "北家：\n%v\n", room.Players[3].Ma.Card)
+		var chicard [4][]string
+		var pongcard [4][]string
+		var gangcard [4][]string
+		for _, p := range room.Players {
+			p.Ma.SortCard()
+			for k, _ := range p.Pong {
+
+				pongcard[p.Position] = append(pongcard[p.Position], k)
+
+			}
+			var i int
+			for k, _ := range p.Chi {
+				if i != 0 {
+					k = "| " + k
+				}
+				chicard[p.Position] = append(chicard[p.Position], k)
+				i++
+			}
+
+			for k, _ := range p.Gang {
+
+				gangcard[p.Position] = append(gangcard[p.Position], k)
+
+			}
+		}
+		fmt.Fprintf(roomtextview, "東家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[0].ID, room.Players[0].Ma.Card, chicard[0], pongcard[0], gangcard[0])
+		fmt.Fprintf(roomtextview, "南家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[1].ID, room.Players[1].Ma.Card, chicard[1], pongcard[1], gangcard[1])
+		fmt.Fprintf(roomtextview, "西家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[2].ID, room.Players[2].Ma.Card, chicard[2], pongcard[2], gangcard[2])
+		fmt.Fprintf(roomtextview, "北家 (%s)：\n%v 吃：%v 碰：%v 槓：%v\n", room.Players[3].ID, room.Players[3].Ma.Card, chicard[3], pongcard[3], gangcard[3])
 	}
 
 }

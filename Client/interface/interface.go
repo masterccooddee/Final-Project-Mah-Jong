@@ -12,9 +12,10 @@ func ShowError(err error, w fyne.Window) {
 
 var LoginSuccess = false
 var GUI *fyne.Container
+var w fyne.Window
 
 func UI() {
-	go interconnect()
+	interconnect()
 
 	a := app.New()
 	a.Settings().SetTheme(myCustomTheme())
@@ -28,6 +29,8 @@ func UI() {
 	w.CenterOnScreen()
 	w.SetOnClosed(func() {
 		conn.Write([]byte("LOGOUT"))
+		dealer.Close()
+		conn.Close()
 	})
 	defer w.Close()
 

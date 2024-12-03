@@ -3,9 +3,10 @@ package main
 func main() {
 
 	// var mycard mao
-	// mycard.Card = []string{"w1", "w1", "w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "w9", "w9"}
+	// mycard.Card = []string{"w4", "w4", "w4", "w5", "w6", "l4", "l5", "l6", "t1", "t2", "t3", "l5", "l6", "l7"}
+	// mycard.SortCard()
 	// mycard.splitCard()
-	//fmt.Println(checkTenpai(MaoToHand(&mycard)))
+	// fmt.Println(mycard.Card, isWinningHand(MaoToHand(&mycard)))
 	ter()
 
 }
