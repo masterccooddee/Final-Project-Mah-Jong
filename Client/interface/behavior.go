@@ -32,8 +32,6 @@ const (
 	WAITING_NEXT_ROUND
 )
 
-var press_button = make(chan bool)
-
 func dealer_recv() string {
 	msg, err := dealer.Recv()
 	if err != nil {
@@ -41,53 +39,6 @@ func dealer_recv() string {
 		os.Exit(1)
 	}
 	return strings.ToUpper(string(msg.Frames[0]))
-}
-
-func ming_without_chi_confirm(mingkind string, cardorkind string, selfming bool) {
-	dialog.ShowConfirm("是否要鳴牌", fmt.Sprintf("Confirm to %s %s?", mingkind, cardorkind), func(confirm bool) {
-		if confirm {
-			mingkind = mingkind[:1] + strings.ToLower(mingkind[1:])
-			cardorkind = strings.ToLower(cardorkind)
-			sendmessage := fmt.Sprintf("%s %d %s", mingkind, pos.Pos[ID], cardorkind)
-			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
-
-			action = WAITING_FOR_GET_OTHER_MING
-
-			selfming = false
-			press_button <- true
-			myCards.SortCard()
-			updateGUI()
-
-		} else {
-			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-			if selfming {
-				action = DISCARD_CARD
-			} else {
-				action = WAITING_FOR_GET_OTHER_MING
-			}
-			selfming = false
-			press_button <- true
-
-		}
-
-	}, fyne.CurrentApp().Driver().AllWindows()[0])
-
-}
-
-func ming_with_chi_confirm(mingkind string, cardorkind []string, card string) {
-	dialog.ShowConfirm("是否要鳴牌", fmt.Sprintf("Confirm to %s?", mingkind), func(confirm bool) {
-
-		if confirm {
-			chi_button(cardorkind, card)
-			return
-		} else {
-			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
-			action = WAITING_FOR_GET_OTHER_MING
-			press_button <- true
-			return
-		}
-
-	}, fyne.CurrentApp().Driver().AllWindows()[0])
 }
 
 func chi_button(cardorkind []string, card string) {
@@ -102,9 +53,9 @@ func chi_button(cardorkind []string, card string) {
 		case "0":
 			button = append(button, widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", card, card, cardkind+strconv.Itoa(number+1), cardkind+strconv.Itoa(number+2)), func() {
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(fmt.Sprintf("Chi %d 0", pos.Pos[ID]))))
-
+				mingbuttonlist.Hide()
 				action = WAITING_FOR_GET_OTHER_MING
-				press_button <- true
+				//press_button <- true
 				dialogWindow.Hide()
 				updateGUI()
 			}))
@@ -112,9 +63,9 @@ func chi_button(cardorkind []string, card string) {
 		case "1":
 			button = append(button, widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", card, cardkind+strconv.Itoa(number-1), card, cardkind+strconv.Itoa(number+1)), func() {
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(fmt.Sprintf("Chi %d 1", pos.Pos[ID]))))
-
+				mingbuttonlist.Hide()
 				action = WAITING_FOR_GET_OTHER_MING
-				press_button <- true
+				//press_button <- true
 				dialogWindow.Hide()
 				updateGUI()
 			}))
@@ -122,9 +73,8 @@ func chi_button(cardorkind []string, card string) {
 		case "2":
 			button = append(button, widget.NewButton(fmt.Sprintf("Chi %s (%s %s %s)", card, cardkind+strconv.Itoa(number-2), cardkind+strconv.Itoa(number-1), card), func() {
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(fmt.Sprintf("Chi %d 2", pos.Pos[ID]))))
-
-				action = WAITING_FOR_GET_OTHER_MING
-				press_button <- true
+				mingbuttonlist.Hide()
+				//press_button <- true
 				dialogWindow.Hide()
 				updateGUI()
 			}))
@@ -134,7 +84,7 @@ func chi_button(cardorkind []string, card string) {
 		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
 
 		action = WAITING_FOR_GET_OTHER_MING
-		press_button <- true
+		//press_button <- true
 		dialogWindow.Hide()
 		updateGUI()
 	})
@@ -164,43 +114,41 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 
 		case "PONG":
 			button = append(button, widget.NewButton("碰", func() {
+				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Pong", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
 
-				action = WAITING_FOR_GET_OTHER_MING
-
 				selfming = false
-				press_button <- true
+				//press_button <- true
 				myCards.SortCard()
 				updateGUI()
 			}))
 
 		case "GANG":
+
 			button = append(button, widget.NewButton("槓", func() {
+				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Gang", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
-
-				action = WAITING_FOR_GET_OTHER_MING
-
-				press_button <- true
+				//press_button <- true
 				myCards.SortCard()
 				updateGUI()
 			}))
 
 		case "HU":
 			button = append(button, widget.NewButton("胡", func() {
+				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Hu", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
 
-				action = WAITING_FOR_GET_OTHER_MING
-
-				press_button <- true
+				//press_button <- true
 				updateGUI()
 			}))
 
 		}
 	}
 	cancelbutton := widget.NewButton("取消", func() {
+		mingbuttonlist.Hide()
 		dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte("Cancel")))
 		if selfming {
 			action = DISCARD_CARD
@@ -208,7 +156,7 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 			action = WAITING_FOR_GET_OTHER_MING
 		}
 		selfming = false
-		press_button <- true
+		//press_button <- true
 		updateGUI()
 	})
 	var conobj []fyne.CanvasObject
@@ -219,6 +167,13 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 	conobj = append(conobj, cancelbutton)
 
 	return conobj
+}
+
+func colorinit() {
+	grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
 }
 
 func changecolor() {
@@ -309,6 +264,8 @@ func behavior() {
 			// 逆時針標記其他玩家的位置
 			playerPositions = make(map[int]string)
 			now_pos = 0
+			colorinit()
+			pos_history = nil
 			pos_history = append(pos_history, now_pos)
 			changecolor()
 			var relativePos [4]int
@@ -393,7 +350,8 @@ func behavior() {
 			}
 			mingbuttonlist.Show()
 			GUI.Refresh()
-			<-press_button
+			//<-press_button
+			action = WAITING_FOR_GET_OTHER_MING
 			//顯示按鈕給按
 			//CANCEL action -> DISCARD_CARD
 			//else -> WAITING_FOR_GET_OTHER_MING
@@ -448,12 +406,14 @@ func behavior() {
 			}
 			mingbuttonlist.Show()
 			GUI.Refresh()
-			<-press_button
+			//<-press_button
+			action = WAITING_FOR_GET_OTHER_MING
 
 		case WAITING_FOR_GET_OTHER_MING:
 			//做相應處理
-			mingbuttonlist.Hide()
+
 			msg, _ := dealer.Recv()
+			mingbuttonlist.Hide()
 			msgslice := strings.Split(string(msg.Frames[0]), " ")
 			cardorkind := msgslice[1]
 			fmt.Println("WAITING_FOR_GET_OTHER_MING:", msg)
@@ -522,6 +482,10 @@ func behavior() {
 					if msgslice[0] == "Hu" {
 						action = END_ROUND
 					} else {
+						if msgslice[0] == "Gang" {
+							action = DRAW_CARD
+							continue
+						}
 						action = WAITING_FOR_GET_DISCARD_CARD
 					}
 				}

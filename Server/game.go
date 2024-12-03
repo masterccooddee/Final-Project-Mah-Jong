@@ -248,6 +248,7 @@ func (r *Room) startgame(ctx context.Context) {
 					//通知玩家抽到的牌
 					sendtoplayer(r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1], r.Players[now].ID)
 					//通知其他玩家有人抽牌
+
 					for i, p := range r.Players {
 						if i != now {
 							sendtoplayer("Draw", p.ID)
@@ -359,8 +360,8 @@ func (r *Room) startgame(ctx context.Context) {
 						break loop
 					}
 
-					//有人鳴牌、倒數3秒可以鳴牌
-					timer := time.NewTimer(3 * time.Second)
+					//有人鳴牌、倒數1秒可以鳴牌
+					timer := time.NewTimer(1 * time.Second)
 
 					for {
 						select {
@@ -510,7 +511,7 @@ func (r *Room) startgame(ctx context.Context) {
 			r.now = now
 			pos_history = nil
 			pos_history = append(pos_history, now)
-
+			position := make(map[string]int)
 			r.Players = append(r.Players[1:], r.Players[0])
 			r.Cardset = mao{}
 			r.Cardset.addCard()
