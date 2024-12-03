@@ -105,7 +105,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 			tpapped_time = 0
 			throwcard <- sendname
 			action = WAITING_FOR_GET_OTHER_MING
-			grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+			//grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
 			updateGUI()
 			GUI.Refresh()
 
@@ -117,12 +117,6 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 		tap_item = nil
 	}
 
-}
-
-func makeFromSlice(sl []string) []string {
-	result := make([]string, len(sl))
-	copy(result, sl)
-	return result
 }
 
 func makeBanner_bottom_bar() [14]fyne.CanvasObject {
@@ -197,22 +191,9 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
 
-	/* gangbutton := widget.NewButton("Gang", func() {})
-	pongbutton := widget.NewButton("Pong", func() {})
-	chibutton := widget.NewButton("Chi", func() {})
-	hubutton := widget.NewButton("Hu", func() {})
-
+	var button_l []fyne.CanvasObject
 	// 使用 Grid 佈局來確保按鈕大小相同
-	mingbuttonlist := container.NewGridWithColumns(4, gangbutton, pongbutton, chibutton, hubutton)
-
-	// 修改 grid 中所有 canvas.Text 的 TextSize
-	for _, obj := range grid.Objects {
-		if center, ok := obj.(*fyne.Container); ok {
-			if text, ok := center.Objects[0].(*canvas.Text); ok {
-				text.TextSize = 15 // 設置你想要的字體大小
-			}
-		}
-	} */
+	mingbuttonlist = container.NewGridWithRows(1, button_l...)
 
 	// 修改 grid 中所有 canvas.Text 的 TextSize
 	for _, obj := range grid.Objects {

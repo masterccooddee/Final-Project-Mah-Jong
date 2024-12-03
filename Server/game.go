@@ -296,13 +296,11 @@ func (r *Room) startgame(ctx context.Context) {
 							r.Players[now].Gang[r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]] = struct{}{}
 							hGang = true
 
-							for _, p := range r.Players {
-								if p.ID != r.Players[now].ID {
-									sendtoplayer("Gang "+r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1]+" "+r.Players[now].ID, p.ID)
-								}
-							}
+							r.sendtoall("Gang " + r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1] + " " + r.Players[now].ID)
+
 							continue
 						} else if getcard == "Hu" {
+							r.sendtoall("Hu " + r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1] + " " + r.Players[now].ID)
 							selftouch = true
 							r.endgame(now)
 							selftouch = false
@@ -408,6 +406,7 @@ func (r *Room) startgame(ctx context.Context) {
 					pos, _ := strconv.Atoi(msg[1])
 					if msg[0] == "Hu" {
 						//胡牌
+						r.sendtoall("Hu " + r.Players[now].Ma.Card[len(r.Players[now].Ma.Card)-1] + " " + r.Players[now].ID)
 						r.endgame(pos)
 						goto nextround
 
