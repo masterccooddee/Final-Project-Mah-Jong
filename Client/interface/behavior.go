@@ -390,6 +390,9 @@ func behavior() {
 				if strings.Contains(string(msg.Frames[0]), "Hu") {
 					action = END_ROUND
 					continue
+				} else if strings.Contains(string(msg.Frames[0]), "Gang") {
+					action = DRAW_CARD
+					continue
 				}
 				action = WAITING_FOR_GET_DISCARD_CARD
 			}

@@ -117,6 +117,8 @@ func isNextPlayer(player *Player, now int) bool {
 
 }
 
+var windong bool
+
 func (r *Room) endgame(now int) {
 	var getpoint int
 	if r.Players[now].Position == 0 {
@@ -136,6 +138,7 @@ func (r *Room) endgame(now int) {
 
 		r.bunround++
 		r.round--
+		windong = true
 	} else {
 		if selftouch {
 			getpoint = 300*r.bunround + 1500
@@ -154,6 +157,7 @@ func (r *Room) endgame(now int) {
 			r.Players[now].Point += getpoint
 			r.Players[pos_history[0]].Point -= getpoint
 		}
+		r.bunround = 0
 	}
 	pointstr := fmt.Sprintf("%d %d %d %d", r.Players[0].Point, r.Players[1].Point, r.Players[2].Point, r.Players[3].Point)
 	r.sendtoall(pointstr)
@@ -512,16 +516,20 @@ func (r *Room) startgame(ctx context.Context) {
 			pos_history = nil
 			pos_history = append(pos_history, now)
 			position := make(map[string]int)
-			r.Players = append(r.Players[1:], r.Players[0])
+			if !windong {
+				r.Players = append(r.Players[1:], r.Players[0])
+			} else {
+				windong = false
+			}
 			r.Cardset = mao{}
 			r.Cardset.addCard()
 			r.Cardset.splitCard()
 			for i, p := range r.Players {
 				p.Position = i
 				p.clean = true
-				p.Chi = nil
-				p.Pong = nil
-				p.Gang = nil
+				p.Chi = make(map[string]struct{})
+				p.Pong = make(map[string]struct{})
+				p.Gang = make(map[string]struct{})
 				p.TingCard = false
 				p.Ma.Card = r.Cardset.Card[:13]
 				p.Ma.splitCard()
@@ -532,14 +540,8 @@ func (r *Room) startgame(ctx context.Context) {
 			baocard = r.Cardset.Card[num-14:]
 			r.round++
 			r.sendtoall("Next round")
-			for i, p := range r.Players {
-				p.Position = i
+			for _, p := range r.Players {
 				position[p.ID] = p.Position
-				p.Ma.Card = r.Cardset.Card[:13]
-				//log.Println(p.Ma.Card)
-				r.Cardset.Card = r.Cardset.Card[13:]
-				p.Ma.splitCard()
-
 			}
 
 			for _, p := range r.Players {
