@@ -181,18 +181,14 @@ func (r *Room) startgame(ctx context.Context) {
 		var hGang bool
 		var hPong bool
 		var hChi bool
+		roundmax := 5
 		//確認是否有4個玩家
 		for len(r.Players) != 4 {
 			if _, exist := roomlist[r.Room_ID]; exist == false {
 				return
 			}
-			//log.Println("Room", r.Room_ID, "is not full", len(r.Players))
 			time.Sleep(1 * time.Second)
 		}
-		// r.Addplayer(player_in{ID: "1", conn: nil})
-		// r.Addplayer(player_in{ID: "2", conn: nil})
-		// r.Addplayer(player_in{ID: "3", conn: nil})
-		// r.Addplayer(player_in{ID: "4", conn: nil})
 
 		//通知所有玩家遊戲開始
 		r.running = true
@@ -231,7 +227,7 @@ func (r *Room) startgame(ctx context.Context) {
 		baocard = r.Cardset.Card[num-14:]
 		log.Println(baocard)
 
-		for r.round < 5 { //到東4局結束
+		for r.round < roundmax { //到東4局結束
 
 			for r.lastcard > 0 { //直到剩0張牌
 				//發一張牌
@@ -511,6 +507,10 @@ func (r *Room) startgame(ctx context.Context) {
 				pos_history = append(pos_history, now)
 			}
 		nextround:
+			r.round++
+			if r.round == roundmax && r.bunround == 0 {
+				goto endgame
+			}
 			now = 0
 			r.now = now
 			pos_history = nil
@@ -538,7 +538,7 @@ func (r *Room) startgame(ctx context.Context) {
 			num = len(r.Cardset.Card)
 			r.lastcard = num - 14
 			baocard = r.Cardset.Card[num-14:]
-			r.round++
+
 			r.sendtoall("Next round")
 			for _, p := range r.Players {
 				position[p.ID] = p.Position
@@ -553,7 +553,11 @@ func (r *Room) startgame(ctx context.Context) {
 			}
 
 		}
-
+	endgame:
+		r.sendtoall("Game over")
+		for _, p := range r.Players {
+			r.leave_room(p.player_in)
+		}
 		r.running = false
 		r.Players = nil
 		r.Cardset = mao{}
@@ -561,9 +565,11 @@ func (r *Room) startgame(ctx context.Context) {
 		r.wind = 0
 		r.bunround = 0
 		r.gang = [4]int{}
+		r.Players = nil
 		if r.private {
 			delete(roomlist, r.Room_ID)
 		} else {
+			time.Sleep(2 * time.Second)
 			goto start
 		}
 

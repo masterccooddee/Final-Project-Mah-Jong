@@ -10,7 +10,7 @@ import (
 )
 
 type Player struct {
-	player_in
+	*player_in
 	Ma       mao
 	TingCard bool
 	Pong     map[string]struct{}
@@ -39,7 +39,7 @@ type Room struct {
 
 var roomlist = make(map[int]*Room)
 
-func (r *Room) Addplayer(player player_in) {
+func (r *Room) Addplayer(player *player_in) {
 	playerinfo := Player{player_in: player, Ma: mao{}, Point: 25000, clean: true, Pong: make(map[string]struct{}), Chi: make(map[string]struct{}), Gang: make(map[string]struct{})}
 	r.Players = append(r.Players, &playerinfo)
 }
@@ -65,7 +65,7 @@ func (r *Room) go_in_room(player *player_in, room_id int) bool {
 		if len(roomlist[room_id].Players) < 4 {
 
 			player.Room_ID = room_id
-			roomlist[room_id].Addplayer(*player)
+			roomlist[room_id].Addplayer(player)
 			log.Println("[#FFA500]" + player.ID + "[reset] join room [yellow]" + strconv.Itoa(room_id) + "[reset]")
 			player.conn.Write([]byte("True Room " + strconv.Itoa(room_id)))
 			return true

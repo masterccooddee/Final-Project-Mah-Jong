@@ -30,6 +30,7 @@ const (
 	WAITING_FOR_GET_SELF_MING
 	END_ROUND
 	WAITING_NEXT_ROUND
+	BACK_TO_LOBBY
 )
 
 func dealer_recv() string {
@@ -242,6 +243,19 @@ func behavior() {
 		fmt.Println("Action: ", action)
 		switch action {
 		case GAME_START_WAIT:
+
+			//初始化
+			discardcard = [4][]string{}
+			throwcard = make(chan string)
+			nowdiscard = ""
+			selfming = false
+			putnewcard = false
+			mingset = nil
+			point = [4]string{}
+			now_pos = 0
+			pos_history = nil
+			myPosition = 0
+
 			msg := dealer_recv()
 			mingbuttonlist.Hide()
 			if msg == "GAME START" {
@@ -251,6 +265,7 @@ func behavior() {
 			}
 
 		case GAME_START:
+
 			mingbuttonlist.Hide()
 			msg, _ = dealer.Recv()
 			json.Unmarshal(msg.Frames[0], &pos)
@@ -509,9 +524,36 @@ func behavior() {
 			msg := dealer_recv()
 			if msg == "NEXT ROUND" {
 				action = GAME_START
+			} else if msg == "GAME OVER" {
+				action = BACK_TO_LOBBY
 			} else {
 				action = WAITING_NEXT_ROUND
 			}
+
+		case BACK_TO_LOBBY:
+			// conn.Write([]byte("ROOM"))
+			// str := rrecv()
+			// fmt.Println("str:", str)
+			// conn.Write([]byte("ROOM FIND"))
+			// str = rrecv()
+			// fmt.Println("str:", str)
+			// conn.Write([]byte("ROOM LEAVE"))
+			// str = rrecv()
+			// fmt.Println("str:", str)
+			rrecv()
+			fmt.Println("Game Over")
+			myCards = mao{}
+			gamestart = false
+			//清空
+			grid.Objects[1].(*fyne.Container).Objects[0].(*canvas.Text).Text = ""
+			grid.Objects[3].(*fyne.Container).Objects[0].(*canvas.Text).Text = ""
+			grid.Objects[5].(*fyne.Container).Objects[0].(*canvas.Text).Text = ""
+			grid.Objects[7].(*fyne.Container).Objects[0].(*canvas.Text).Text = ""
+			grid.Objects[4].(*fyne.Container).Objects[0].(*canvas.Text).Text = ""
+
+			updateGUI()
+
+			action = GAME_START_WAIT
 
 		}
 

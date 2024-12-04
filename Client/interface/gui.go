@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"strings"
-	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -213,9 +212,6 @@ func makeGUI() *fyne.Container {
 }
 
 func updateGUI() {
-
-	top_bar.SetText("Top " + time.Now().Format("15:04:05"))
-	canvas.Refresh(top_bar)
 
 	bottom_bar = makeBanner_bottom_bar()
 	for c := 0; c < 14; c++ {
