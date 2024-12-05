@@ -177,6 +177,8 @@ func checkSevenPairs(tiles []Tile) bool {
 	return pairs == 7
 }
 
+// 檢查特殊牌型
+
 // 檢查特殊牌型（此處僅處理槓子）
 func checkGang(hand Hand) int {
 	pairs := 0
@@ -233,10 +235,12 @@ func findMentsuAndPair(tiles []Tile, mentsuCount, pairCount int) bool {
 	// 嘗試找順子
 	for i := 1; i < len(tiles)-1; i++ {
 		for j := i + 1; j < len(tiles); j++ {
-			if len(tiles) >= 3 && isSequential(tiles[0], tiles[i], tiles[j]) {
-				remain := removeTiles(tiles, []Tile{tiles[0], tiles[i], tiles[j]})
-				if findMentsuAndPair(remain, mentsuCount+1, pairCount) {
-					return true
+			if !isHonorTile(tiles[0]) {
+				if len(tiles) >= 3 && isSequential(tiles[0], tiles[i], tiles[j]) {
+					remain := removeTiles(tiles, []Tile{tiles[0], tiles[i], tiles[j]})
+					if findMentsuAndPair(remain, mentsuCount+1, pairCount) {
+						return true
+					}
 				}
 			}
 		}
@@ -271,15 +275,12 @@ func isSequential(a, b, c Tile) bool {
 func isHonorTile(tile Tile) bool {
 	return tile.Suit == "字" // 字牌的 Suit 設定為 "字"
 }
-
 func isWanTile(tile Tile) bool {
 	return tile.Suit == "萬"
 }
-
 func isTongTile(tile Tile) bool {
 	return tile.Suit == "筒"
 }
-
 func isTiaoTile(tile Tile) bool {
 	return tile.Suit == "條"
 }
