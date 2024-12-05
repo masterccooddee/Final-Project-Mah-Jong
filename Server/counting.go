@@ -232,7 +232,7 @@ func checkThirteenOrphans(hand Hand) bool {
 	return allPresent && duplicateCount == 1
 }
 
-// 檢查特殊牌型（此處僅處理槓子）
+// 檢查特殊牌型（此處僅處理槓）
 func checkGang(hand Hand) int {
 	pairs := 0
 	if len(hand.Tiles) > 14 {

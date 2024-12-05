@@ -11,6 +11,6 @@ func main() {
 	// mycard.SortCard()
 	// mycard.splitCard()
 	// fmt.Println(mycard.Card, isWinningHand(MaoToHand(&mycard)))
-	ter()
+	//ter()
 
 }
