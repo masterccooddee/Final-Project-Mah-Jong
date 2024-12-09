@@ -47,7 +47,7 @@ func (l *fysionLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	l.content.Move(fyne.NewPos(size.Width/3+sideWidth/3, (topHeight*2+sideWidth+size.Height)/3))
 	l.content.Resize(fyne.NewSize((size.Width-sideWidth*2)/3, (size.Height-topHeight-sideWidth*2)/3))
 
-	l.mingbuttonlist.Move(fyne.NewPos(size.Width-sideWidth-600, (topHeight*2+sideWidth+size.Height)/3*1.8-15))
+	l.mingbuttonlist.Move(fyne.NewPos(size.Width-sideWidth-600, (topHeight*2+sideWidth+size.Height)/3*1.8-size.Height/10))
 	l.mingbuttonlist.Resize(fyne.NewSize(600, 50))
 
 	dividerThickness := theme.SeparatorThicknessSize()
