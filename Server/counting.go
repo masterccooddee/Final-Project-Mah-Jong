@@ -156,7 +156,7 @@ func generateAllTiles() []Tile {
 // ***********************************************胡牌判定***********************************************
 func isWinningHand(hand Hand) bool {
 	// 檢查是否符合 4 面子 + 1 將的結構
-	return checkForMentsuAndPair(hand) || checkSevenPairs(hand.Tiles)
+	return checkForMentsuAndPair(hand) || checkSevenPairs(hand.Tiles) || checkThirteenOrphans(hand)
 }
 
 // 檢查7對子
@@ -177,7 +177,62 @@ func checkSevenPairs(tiles []Tile) bool {
 	return pairs == 7
 }
 
-// 檢查特殊牌型（此處僅處理槓子）
+// 檢查特殊牌型
+// 十三么需要的基本牌組
+var thirteenOrphansSet = map[string][]int{
+	"萬": {1, 9},
+	"筒": {1, 9},
+	"條": {1, 9},
+	"字": {1, 2, 3, 4, 5, 6, 7}, // 東南西北白發中
+}
+
+// 判斷是否是十三么牌型
+func checkThirteenOrphans(hand Hand) bool {
+	if len(hand.Tiles) != 14 {
+		return false // 必須是14張牌
+	}
+
+	// 記錄十三么所需的牌是否都出現
+	required := map[string]map[int]bool{}
+	for suit, values := range thirteenOrphansSet {
+		required[suit] = map[int]bool{}
+		for _, value := range values {
+			required[suit][value] = false
+		}
+	}
+
+	// 判斷牌的分佈以及是否有重複牌
+	duplicateCount := 0
+	for _, tile := range hand.Tiles {
+		if suitSet, exists := required[tile.Suit]; exists {
+			if _, valueExists := suitSet[tile.Value]; valueExists {
+				if suitSet[tile.Value] {
+					duplicateCount++
+				} else {
+					suitSet[tile.Value] = true
+				}
+			} else {
+				return false // 非十三么牌
+			}
+		} else {
+			return false // 非十三么牌
+		}
+	}
+
+	// 檢查所有十三么必須的牌是否都出現，且只能有一個重複
+	allPresent := true
+	for _, suitSet := range required {
+		for _, seen := range suitSet {
+			if !seen {
+				allPresent = false
+				break
+			}
+		}
+	}
+	return allPresent && duplicateCount == 1
+}
+
+// 檢查特殊牌型（此處僅處理槓）
 func checkGang(hand Hand) int {
 	pairs := 0
 	if len(hand.Tiles) > 14 {
@@ -233,10 +288,12 @@ func findMentsuAndPair(tiles []Tile, mentsuCount, pairCount int) bool {
 	// 嘗試找順子
 	for i := 1; i < len(tiles)-1; i++ {
 		for j := i + 1; j < len(tiles); j++ {
-			if len(tiles) >= 3 && isSequential(tiles[0], tiles[i], tiles[j]) {
-				remain := removeTiles(tiles, []Tile{tiles[0], tiles[i], tiles[j]})
-				if findMentsuAndPair(remain, mentsuCount+1, pairCount) {
-					return true
+			if !isHonorTile(tiles[0]) {
+				if len(tiles) >= 3 && isSequential(tiles[0], tiles[i], tiles[j]) {
+					remain := removeTiles(tiles, []Tile{tiles[0], tiles[i], tiles[j]})
+					if findMentsuAndPair(remain, mentsuCount+1, pairCount) {
+						return true
+					}
 				}
 			}
 		}
@@ -271,15 +328,12 @@ func isSequential(a, b, c Tile) bool {
 func isHonorTile(tile Tile) bool {
 	return tile.Suit == "字" // 字牌的 Suit 設定為 "字"
 }
-
 func isWanTile(tile Tile) bool {
 	return tile.Suit == "萬"
 }
-
 func isTongTile(tile Tile) bool {
 	return tile.Suit == "筒"
 }
-
 func isTiaoTile(tile Tile) bool {
 	return tile.Suit == "條"
 }
