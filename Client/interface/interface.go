@@ -15,7 +15,6 @@ var GUI *fyne.Container
 var w fyne.Window
 
 func UI() {
-	interconnect()
 
 	a := app.New()
 	a.Settings().SetTheme(myCustomTheme())
