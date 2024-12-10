@@ -66,7 +66,9 @@ func rrecv() string {
 
 func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *fyne.Window) fyne.CanvasObject {
 	input := widget.NewEntry()
+	inputIP := widget.NewEntry()
 	input.SetPlaceHolder("Enter text...")
+	inputIP.SetPlaceHolder("Enter IP address...")
 	received_content := canvas.NewText("", color.Black)
 	received_content.TextSize = 12
 
@@ -90,13 +92,19 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 		if recv == "Welcome" {
 			LoginSuccess = true
 			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
-
-			err := dealer.Dial("tcp://localhost:7125")
-			if err != nil {
-				//fmt.Println("Error connecting dealer:", err)
-				return
+			if inputIP.Text != "" {
+				err := dealer.Dial("tcp://" + inputIP.Text + ":7125")
+				if err != nil {
+					//fmt.Println("Error connecting dealer:", err)
+					return
+				}
+			} else {
+				err := dealer.Dial("tcp://104.248.151.58:7125")
+				if err != nil {
+					//fmt.Println("Error connecting dealer:", err)
+					return
+				}
 			}
-
 			(*loginwindow).Close()
 			(*openwindow).Show()
 			fmt.Println("ID:", ID)
@@ -129,7 +137,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 			LoginSuccess = true
 			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
 
-			err := dealer.Dial("tcp://localhost:7125")
+			err := dealer.Dial("tcp://104.248.151.58:7125")
 			if err != nil {
 				//fmt.Println("Error connecting dealer:", err)
 				return
@@ -147,7 +155,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 		}
 	}))
 
-	form := widget.NewForm(widget.NewFormItem("Username", input))
+	form := widget.NewForm(widget.NewFormItem("IP", inputIP), widget.NewFormItem("Username", input))
 
 	content := container.NewVBox(form, Send_Login_content, Send_Register_content, received_content)
 
