@@ -36,7 +36,7 @@ const (
 func dealer_recv() string {
 	msg, err := dealer.Recv()
 	if err != nil {
-		fmt.Println("Error receiving message:", err)
+		//fmt.Println("Error receiving message:", err)
 		os.Exit(1)
 	}
 	return strings.ToUpper(string(msg.Frames[0]))
@@ -104,7 +104,7 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 	var button []*widget.Button
 
 	for _, v := range mingset {
-		fmt.Println("Mingset:", v)
+		//fmt.Println("Mingset:", v)
 		mingslice := strings.Split(v, " ")
 		cardorkind := strings.ToLower(mingslice[1])
 		switch mingslice[0] {
@@ -386,7 +386,7 @@ func behavior() {
 			if strings.Contains(msg, "NO") {
 				action = WAITING_FOR_GET_OTHER_MING
 			} else {
-				fmt.Println("CHECK_MING:", msg)
+				//fmt.Println("CHECK_MING:", msg)
 				mingset = nil
 				mingset = append(mingset, strings.Split(msg, ",")...)
 

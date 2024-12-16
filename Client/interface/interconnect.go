@@ -223,7 +223,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 }
 
 func interconnect() error {
-	conn, err = net.Dial("tcp", "104.248.151.58104.248.151.58:8080")
+	conn, err = net.Dial("tcp", "104.248.151.58:8080")
 
 	return err
 
