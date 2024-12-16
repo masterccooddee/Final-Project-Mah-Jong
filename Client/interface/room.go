@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"image/color"
 	"strings"
 
@@ -97,7 +96,7 @@ func makeRoomInterface(received_content **canvas.Text) fyne.CanvasObject {
 		//fmt.Println("Find Room")
 		conn.Write([]byte("ROOM FIND"))
 		recv := rrecv()
-		fmt.Println(recv)
+		//fmt.Println(recv)
 		msg := strings.Split(recv, " ")
 		if msg[0] == "True" {
 			//fmt.Println("msg[2] " + msg[2])

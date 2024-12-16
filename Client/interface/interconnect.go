@@ -2,7 +2,6 @@ package ui
 
 import (
 	"context"
-	"fmt"
 	"image/color"
 	"net"
 	"os"
@@ -107,7 +106,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 			}
 			(*loginwindow).Close()
 			(*openwindow).Show()
-			fmt.Println("ID:", ID)
+			//fmt.Println("ID:", ID)
 			behavior_handler()
 		} else {
 			//fmt.Println("Login failed")
@@ -145,7 +144,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 
 			(*loginwindow).Close()
 			(*openwindow).Show()
-			fmt.Println("ID:", ID)
+			//fmt.Println("ID:", ID)
 			behavior_handler()
 		} else {
 			//fmt.Println("ID already exist")
@@ -163,7 +162,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 }
 
 func interconnect() {
-	conn, err = net.Dial("tcp", ":8080")
+	conn, err = net.Dial("tcp", "104.248.151.58:8080")
 
 	if err != nil {
 		//fmt.Println("Error dialing", err)

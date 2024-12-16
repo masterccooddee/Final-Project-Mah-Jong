@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"image/color"
 	"strings"
 
@@ -67,7 +66,7 @@ var tpapped_time int
 var tap_item []*TappableCard
 
 func (i *TappableCard) MouseIn(_ *desktop.MouseEvent) {
-	fmt.Println("MouseIn")
+	//fmt.Println("MouseIn")
 	i.Move(fyne.NewPos(i.Position().X, i.Position().Y-10))
 }
 
@@ -85,10 +84,10 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 
 		}
 	}
-	fmt.Println("Tapped")
+	//fmt.Println("Tapped")
 
 	tpapped_time++
-	fmt.Println("tpapped_time:", tpapped_time)
+	//fmt.Println("tpapped_time:", tpapped_time)
 
 	if tpapped_time == 1 {
 		i.Move(fyne.NewPos(i.Position().X, i.Position().Y-30))
@@ -100,7 +99,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 			myCards.removeCard(sendname)
 			myCards.SortCard()
 			dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendname)))
-			fmt.Println("Send:", sendname)
+			//fmt.Println("Send:", sendname)
 			tpapped_time = 0
 			throwcard <- sendname
 			action = WAITING_FOR_GET_OTHER_MING
@@ -109,7 +108,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 			GUI.Refresh()
 
 		} else {
-			fmt.Println("Not your turn")
+			//fmt.Println("Not your turn")
 			i.Move(fyne.NewPos(i.Position().X, i.Position().Y+30))
 			tpapped_time = 0
 		}
@@ -119,7 +118,7 @@ func (i *TappableCard) Tapped(_ *fyne.PointEvent) {
 }
 
 func makeBanner_bottom_bar() [14]fyne.CanvasObject {
-	fmt.Println("myCards.Card:", myCards.Card)
+	//fmt.Println("myCards.Card:", myCards.Card)
 	cardslice := [14]fyne.CanvasObject{}
 	if myCards.Card == nil {
 		for i := 0; i < 14; i++ {
@@ -190,9 +189,12 @@ func makeGUI() *fyne.Container {
 		container.NewCenter(canvas.NewText("", color.Black)),
 	)
 
+	//var throwlist [4]fyne.CanvasObject
 	var button_l []fyne.CanvasObject
 	// 使用 Grid 佈局來確保按鈕大小相同
 	mingbuttonlist = container.NewGridWithRows(1, button_l...)
+
+	//throwlist[0] = container.NewCenter(canvas.NewText("", color.Black))
 
 	// 修改 grid 中所有 canvas.Text 的 TextSize
 	for _, obj := range grid.Objects {
