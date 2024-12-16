@@ -109,12 +109,12 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 		cardorkind := strings.ToLower(mingslice[1])
 		switch mingslice[0] {
 		case "CHI":
-			button = append(button, widget.NewButton("吃", func() {
+			button = append(button, widget.NewButton("吃 "+nowdiscard, func() {
 				chi_button(mingslice[1:], nowdiscard)
 			}))
 
 		case "PONG":
-			button = append(button, widget.NewButton("碰", func() {
+			button = append(button, widget.NewButton("碰 "+nowdiscard, func() {
 				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Pong", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
@@ -127,7 +127,7 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 
 		case "GANG":
 
-			button = append(button, widget.NewButton("槓", func() {
+			button = append(button, widget.NewButton("槓 "+nowdiscard, func() {
 				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Gang", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
@@ -137,7 +137,7 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 			}))
 
 		case "HU":
-			button = append(button, widget.NewButton("胡", func() {
+			button = append(button, widget.NewButton("胡 "+nowdiscard, func() {
 				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Hu", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))

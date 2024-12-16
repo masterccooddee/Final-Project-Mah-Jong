@@ -19,7 +19,7 @@ func UI() {
 	a := app.New()
 	a.Settings().SetTheme(myCustomTheme())
 
-	w := a.NewWindow("Mahjong")
+	w := a.NewWindow("Mahjong Go                w:萬   t:筒   l:條   1:東   2:南   3:西   4:北   5:白   6:發   7:中")
 	w.Resize(fyne.NewSize(1024, 600))
 
 	GUI = makeGUI()
