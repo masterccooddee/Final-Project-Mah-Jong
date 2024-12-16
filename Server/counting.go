@@ -267,19 +267,12 @@ func checkForMentsuAndPair(hand Hand) bool {
 
 // 遞迴查找是否可以拆分成 4 面子 + 1 將
 func findMentsuAndPair(tiles []Tile, mentsuCount, pairCount int) bool {
-	/* for _, tile := range tiles {
-		fmt.Print(tile)
-	}
-	fmt.Println(mentsuCount, pairCount)
-	fmt.Println() */
 	if len(tiles) == 0 {
-		//fmt.Println("========================================================")
 		return mentsuCount == 4 && pairCount == 1
 	}
 
 	// 嘗試找將牌（雀頭）
 	if pairCount == 0 && len(tiles) >= 2 && tiles[0] == tiles[1] {
-		//fmt.Println("head: ", tiles[0], tiles[1])
 		if findMentsuAndPair(tiles[2:], mentsuCount, pairCount+1) {
 			return true
 		}
@@ -298,18 +291,9 @@ func findMentsuAndPair(tiles []Tile, mentsuCount, pairCount int) bool {
 			}
 		}
 	}
-	/* if len(tiles) >= 3 && isSequential(tiles[0], tiles[1], tiles[2]) {
-		fmt.Printf("sequence%d: ", mentsuCount)
-		fmt.Println(tiles[0], tiles[1], tiles[2])
-		if findMentsuAndPair(tiles[3:], mentsuCount+1, pairCount) {
-			return true
-		}
-	} */
 
 	// 嘗試找刻子
 	if len(tiles) >= 3 && tiles[0] == tiles[1] && tiles[1] == tiles[2] {
-		//fmt.Printf("triplet%d: ", mentsuCount)
-		//fmt.Println(tiles[0], tiles[1], tiles[2])
 		if findMentsuAndPair(tiles[3:], mentsuCount+1, pairCount) {
 			return true
 		}
