@@ -36,7 +36,7 @@ const (
 func dealer_recv() string {
 	msg, err := dealer.Recv()
 	if err != nil {
-		fmt.Println("Error receiving message:", err)
+		//fmt.Println("Error receiving message:", err)
 		os.Exit(1)
 	}
 	return strings.ToUpper(string(msg.Frames[0]))
@@ -104,17 +104,17 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 	var button []*widget.Button
 
 	for _, v := range mingset {
-		fmt.Println("Mingset:", v)
+		//fmt.Println("Mingset:", v)
 		mingslice := strings.Split(v, " ")
 		cardorkind := strings.ToLower(mingslice[1])
 		switch mingslice[0] {
 		case "CHI":
-			button = append(button, widget.NewButton("吃", func() {
+			button = append(button, widget.NewButton("吃 "+nowdiscard, func() {
 				chi_button(mingslice[1:], nowdiscard)
 			}))
 
 		case "PONG":
-			button = append(button, widget.NewButton("碰", func() {
+			button = append(button, widget.NewButton("碰 "+nowdiscard, func() {
 				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Pong", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
@@ -127,7 +127,7 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 
 		case "GANG":
 
-			button = append(button, widget.NewButton("槓", func() {
+			button = append(button, widget.NewButton("槓 "+nowdiscard, func() {
 				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Gang", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
@@ -137,7 +137,7 @@ func put_button(selfming bool, nowdiscard string) []fyne.CanvasObject {
 			}))
 
 		case "HU":
-			button = append(button, widget.NewButton("胡", func() {
+			button = append(button, widget.NewButton("胡 "+nowdiscard, func() {
 				mingbuttonlist.Hide()
 				sendmessage := fmt.Sprintf("%s %d %s", "Hu", pos.Pos[ID], cardorkind)
 				dealer.SendMulti(zmq4.NewMsgFrom([]byte(RoomID), []byte(sendmessage)))
@@ -240,7 +240,7 @@ func behavior() {
 	var getcard string
 
 	for {
-		fmt.Println("Action: ", action)
+		//fmt.Println("Action: ", action)
 		switch action {
 		case GAME_START_WAIT:
 
@@ -270,12 +270,12 @@ func behavior() {
 			msg, _ = dealer.Recv()
 			json.Unmarshal(msg.Frames[0], &pos)
 			myCards = pos.Ma
-			fmt.Println("My Cards:", myCards.Card)
+			//fmt.Println("My Cards:", myCards.Card)
 			myCards.SortCard()
-			fmt.Println("My Cards after sorting:", myCards.Card)
+			//fmt.Println("My Cards after sorting:", myCards.Card)
 			myPosition = pos.Pos[ID]
 			gamestart = true
-			fmt.Println("My Position:", myPosition)
+			//fmt.Println("My Position:", myPosition)
 			// 逆時針標記其他玩家的位置
 			playerPositions = make(map[int]string)
 			now_pos = 0
@@ -375,7 +375,7 @@ func behavior() {
 			msg := strings.ToLower(dealer_recv())
 			msgslice := strings.Split(msg, " ")
 			discardpos, _ := strconv.Atoi(msgslice[0])
-			fmt.Println("Discard Position:", discardpos, "Discard Card:", msgslice[1])
+			//fmt.Println("Discard Position:", discardpos, "Discard Card:", msgslice[1])
 
 			discardcard[discardpos] = append(discardcard[discardpos], msgslice[1])
 			nowdiscard = msgslice[1]
@@ -386,7 +386,7 @@ func behavior() {
 			if strings.Contains(msg, "NO") {
 				action = WAITING_FOR_GET_OTHER_MING
 			} else {
-				fmt.Println("CHECK_MING:", msg)
+				//fmt.Println("CHECK_MING:", msg)
 				mingset = nil
 				mingset = append(mingset, strings.Split(msg, ",")...)
 
@@ -397,7 +397,7 @@ func behavior() {
 			mingbuttonlist.Hide()
 			GUI.Refresh()
 			msg, _ := dealer.Recv()
-			fmt.Println("WAITING_FOR_GET_SELF_MING:", msg)
+			//fmt.Println("WAITING_FOR_GET_SELF_MING:", msg)
 			if strings.Contains(string(msg.Frames[0]), "NO") {
 				action = WAITING_FOR_GET_DISCARD_CARD
 			} else {
@@ -434,7 +434,7 @@ func behavior() {
 			mingbuttonlist.Hide()
 			msgslice := strings.Split(string(msg.Frames[0]), " ")
 			cardorkind := msgslice[1]
-			fmt.Println("WAITING_FOR_GET_OTHER_MING:", msg)
+			//fmt.Println("WAITING_FOR_GET_OTHER_MING:", msg)
 			if strings.Contains(string(msg.Frames[0]), "NO") { //沒人鳴牌
 				now_pos = (now_pos + 1) % 4
 				pos_history = append(pos_history, now_pos)
@@ -446,7 +446,7 @@ func behavior() {
 					pos_history = append(pos_history, now_pos)
 					changecolor()
 					if msgslice[0] == "Pong" {
-						fmt.Println("PPong", cardorkind)
+						//fmt.Println("PPong", cardorkind)
 						myCards.removeCard(cardorkind)
 						myCards.removeCard(cardorkind)
 						myCards.SortCard()
@@ -541,7 +541,7 @@ func behavior() {
 			// str = rrecv()
 			// fmt.Println("str:", str)
 			rrecv()
-			fmt.Println("Game Over")
+			//fmt.Println("Game Over")
 			myCards = mao{}
 			gamestart = false
 			//清空

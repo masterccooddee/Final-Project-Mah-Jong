@@ -2,7 +2,6 @@ package ui
 
 import (
 	"context"
-	"fmt"
 	"image/color"
 	"net"
 	"os"
@@ -68,15 +67,21 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 	input := widget.NewEntry()
 	inputIP := widget.NewEntry()
 	input.SetPlaceHolder("Enter text...")
-	inputIP.SetPlaceHolder("Enter IP address...")
+	inputIP.SetPlaceHolder("輸入 -1 直連至已開設服務器")
 	received_content := canvas.NewText("", color.Black)
 	received_content.TextSize = 12
+	var connect bool = false
 
 	Send_Login_content := container.NewVBox(widget.NewButton("Login", func() {
 		//fmt.Println("Logging:", input.Text)
 		if input.Text == "" {
 			//fmt.Println("Please enter a username")
 			received_content.Text = "Please enter a username"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+			return
+		} else if connect == false {
+			received_content.Text = "Please connect to server first"
 			received_content.Color = color.RGBA{255, 0, 0, 255}
 			received_content.Refresh()
 			return
@@ -92,14 +97,14 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 		if recv == "Welcome" {
 			LoginSuccess = true
 			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
-			if inputIP.Text != "" {
-				err := dealer.Dial("tcp://" + inputIP.Text + ":7125")
+			if inputIP.Text == "-1" {
+				err := dealer.Dial("tcp://104.248.151.58:7125")
 				if err != nil {
 					//fmt.Println("Error connecting dealer:", err)
 					return
 				}
 			} else {
-				err := dealer.Dial("tcp://104.248.151.58:7125")
+				err := dealer.Dial("tcp://" + inputIP.Text + ":7125")
 				if err != nil {
 					//fmt.Println("Error connecting dealer:", err)
 					return
@@ -107,7 +112,7 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 			}
 			(*loginwindow).Close()
 			(*openwindow).Show()
-			fmt.Println("ID:", ID)
+			//fmt.Println("ID:", ID)
 			behavior_handler()
 		} else {
 			//fmt.Println("Login failed")
@@ -125,6 +130,11 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 			received_content.Color = color.RGBA{255, 0, 0, 255}
 			received_content.Refresh()
 			return
+		} else if connect == false {
+			received_content.Text = "Please connect to server first"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+			return
 		} else {
 			conn.Write([]byte("REG " + input.Text))
 		}
@@ -137,15 +147,23 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 			LoginSuccess = true
 			dealer = zmq4.NewDealer(context.Background(), zmq4.WithID(zmq4.SocketIdentity(ID)))
 
-			err := dealer.Dial("tcp://104.248.151.58:7125")
-			if err != nil {
-				//fmt.Println("Error connecting dealer:", err)
-				return
+			if inputIP.Text == "-1" {
+				err := dealer.Dial("tcp://104.248.151.58:7125")
+				if err != nil {
+					//fmt.Println("Error connecting dealer:", err)
+					return
+				}
+			} else {
+				err := dealer.Dial("tcp://" + inputIP.Text + ":7125")
+				if err != nil {
+					//fmt.Println("Error connecting dealer:", err)
+					return
+				}
 			}
 
 			(*loginwindow).Close()
 			(*openwindow).Show()
-			fmt.Println("ID:", ID)
+			//fmt.Println("ID:", ID)
 			behavior_handler()
 		} else {
 			//fmt.Println("ID already exist")
@@ -155,19 +173,58 @@ func LORinterface(loginwindow *fyne.Window, openwindow *fyne.Window, chiwindow *
 		}
 	}))
 
+	connect_to_server := widget.NewButton("Connect to server", func() {
+		if inputIP.Text == "" {
+			//fmt.Println("Please enter an IP")
+			received_content.Text = "Please enter an IP"
+			received_content.Color = color.RGBA{255, 0, 0, 255}
+			received_content.Refresh()
+			return
+		} else if inputIP.Text == "-1" {
+			err := interconnect()
+			if err != nil {
+				received_content.Text = "Something went wrong"
+				received_content.Color = color.RGBA{255, 0, 0, 255}
+				received_content.Refresh()
+				return
+			}
+			received_content.Text = "Connected to server"
+			received_content.Color = color.RGBA{0, 255, 0, 255}
+			received_content.Refresh()
+			connect = true
+			return
+		} else {
+			if IP := net.ParseIP(inputIP.Text); IP == nil {
+				received_content.Text = "Please enter a valid IP"
+				received_content.Color = color.RGBA{255, 0, 0, 255}
+				received_content.Refresh()
+			} else {
+				conn, err = net.Dial("tcp", IP.String()+":8080")
+				if err != nil {
+					received_content.Text = "Something went wrong"
+					received_content.Color = color.RGBA{255, 0, 0, 255}
+					received_content.Refresh()
+				} else {
+					received_content.Text = "Connected to server"
+					received_content.Color = color.RGBA{0, 255, 0, 255}
+					received_content.Refresh()
+					connect = true
+					return
+				}
+			}
+		}
+	})
+
 	form := widget.NewForm(widget.NewFormItem("IP", inputIP), widget.NewFormItem("Username", input))
 
-	content := container.NewVBox(form, Send_Login_content, Send_Register_content, received_content)
+	content := container.NewVBox(form, Send_Login_content, Send_Register_content, connect_to_server, received_content)
 
 	return content
 }
 
-func interconnect() {
-	conn, err = net.Dial("tcp", ":8080")
+func interconnect() error {
+	conn, err = net.Dial("tcp", "104.248.151.58:8080")
 
-	if err != nil {
-		//fmt.Println("Error dialing", err)
-		return
-	}
+	return err
 
 }

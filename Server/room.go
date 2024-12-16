@@ -23,18 +23,19 @@ type Player struct {
 }
 
 type Room struct {
-	Players  []*Player
-	Cardset  mao
-	Room_ID  int
-	private  bool
-	running  bool        //遊戲是否開始
-	recvchan chan string //接收玩家訊息
-	lastcard int         //剩幾張
-	round    int         //第幾局 如：東1
-	wind     int         // 0.東 1.南 2.西 3.北
-	bunround int         //本場
-	gang     [4]int      //槓的次數
-	now      int         //當前玩家
+	Players         []*Player
+	Cardset         mao
+	Room_ID         int
+	private         bool
+	running         bool        //遊戲是否開始
+	recvchan        chan string //接收玩家訊息
+	lastcard        int         //剩幾張
+	round           int         //第幾局 如：東1
+	wind            int         // 0.東 1.南 2.西 3.北
+	bunround        int         //本場
+	gang            [4]int      //槓的次數
+	now             int         //當前玩家
+	real_player_nun int         //真實玩家數
 }
 
 var roomlist = make(map[int]*Room)
@@ -51,6 +52,7 @@ func makeRoom(room_id int, private bool) {
 	room.private = private
 	room.round = 1
 	room.wind = 0
+	room.real_player_nun = 4
 	roomlist[room_id] = room
 	RROM := roomlist[room_id]
 	RROM.recvchan = make(chan string, 2)
@@ -122,6 +124,8 @@ func (r *Room) leave_room(player *player_in) {
 				r.Players[i].Pong = make(map[string]struct{})
 				r.Players[i].Chi = make(map[string]struct{})
 				r.Players[i].Gang = make(map[string]struct{})
+				r.real_player_nun--
+
 			} else {
 				r.Players = append(r.Players[:i], r.Players[i+1:]...)
 			}
@@ -142,7 +146,7 @@ func RoomCleaner(ctx context.Context) {
 			cleaning = true
 			log.Println("Start to clean room")
 			for id, r := range roomlist {
-				if len(r.Players) == 0 {
+				if len(r.Players) == 0 || r.real_player_nun == 0 {
 					delete(roomlist, id)
 					log.Println("Room[#FFA500]", id, "[reset]is empty, delete")
 				}
